@@ -1,3 +1,4 @@
+# cái ver 2 là cái lỏ của h anh, cái trên cái tao sửa sơ sơ lại, vẫn đg đợi nó sửa lại dựa trên đó, do nó code bừa với thùa thải nhiều quá
 # Socket
 import socket
 import pickle# thư viện dùng để nén dữ liệu 
