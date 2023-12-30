@@ -46,6 +46,7 @@ class Dekstop(QMainWindow):
         self.setGeometry(QRect(pyautogui.size()[0] // 4, pyautogui.size()[1] // 4, 400, 90))
         self.setFixedSize(self.width(), self.height())
         self.setWindowTitle("[CLIENT] Remote Desktop: " + str(randint(99999, 999999)))
+        
 
         self.btn = QPushButton(self) # nút khởi động chương trình
         self.btn.move(5, 55)
@@ -73,33 +74,45 @@ class Dekstop(QMainWindow):
         self.newWindow.setFixedSize(1800, 800)
         self.newWindow.setWindowTitle("[Server] Remote Desktop: " + str(randint(99999, 999999)))
         self.newWindow.show()
-        # Khởi tạo kết nối
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_socket.connect(server_address)
-        # Khởi tạo luồng 
-        self.start = Thread(target = self.ChangeImage(client_socket), daemon = True)
-        self.thread_keyboard = Thread(target=self.putkeyboard(client_socket), daemon = True)
-        self.thread_mouse = Thread(target=self.putkeymouse(client_socket), daemon = True)
-        # Chạy luồng
-        self.start.start()
-        self.thread_keyboard.start()
-        self.thread_mouse.start()
+        # Khởi tạo Main Program
+        self.thread = Thread(target = self.MainProgram, daemon = True)
+        self.thread.start()
+
+        
     
     # Dừng các thread và giải phóng tài nguyên trước khi thoát ứng dụng ...
     def ExitApp(self):
         self.close()
 
     # Thread đổi ảnh _________________________________________________________________________________________________
-    def ChangeImage(self, client_socket):
-        while True:
-            img_bytes = client_socket.recv(9999999)
-            self.pixmap.loadFromData(img_bytes)
-            self.label2.setPixmap(self.pixmap)
-            self.label2.setScaledContents(True)
-            self.label2.setAlignment(Qt.AlignCenter)
-            self.label2.setFixedSize(1800, 800)
-        client_socket.close()  
-    
+    def MainProgram(self):
+        # Khởi tạo kết nối
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_socket.connect(server_address)
+        
+        with client_socket:
+            try:
+                # self.start = Thread(target = lambda: self.ChangeImage(client_socket), daemon = True)
+                # self.start.start()
+           
+                self.thread_keyboard = Thread(target = lambda: self.putkeyboard(client_socket), daemon = True)
+                self.thread_keyboard.start()
+
+                self.thread_mouse = Thread(target = lambda: self.putkeymouse(client_socket), daemon = True)         
+                self.thread_mouse.start()
+
+                while True:
+                    img_bytes = client_socket.recv(9999999)
+                    self.pixmap.loadFromData(img_bytes)
+                    self.label2.setPixmap(self.pixmap)
+                    self.label2.setScaledContents(True)
+                    self.label2.setAlignment(Qt.AlignCenter) 
+                    self.label2.setFixedSize(1800, 800)
+                
+            except:
+                client_socket.close()
+
+
     # Thread gửi kí tự _______________________________________________________________________________________________
     def putkeyboard(self, client_socket):
         on_release = True
@@ -143,10 +156,10 @@ class Dekstop(QMainWindow):
             ) as listener:
                 listener.join()
         
-    def on_move(self, x, y):
+    def on_move(self, x, y, client_socket):
         logdata2 = []
         logdata2.append([ f'Mouse moved to ({x}, {y})'])
-        self.send_keymouse_data(logdata2,"on_move")
+        self.send_keymouse_data(logdata2,"on_move", client_socket)
         # mouse thì sẽ gửi là message = {key}, {trường hợp}, {x}, {y} nếu th là on_scroll thì thêm {dx}, {dy} cuối nũa
         
 
@@ -154,7 +167,7 @@ class Dekstop(QMainWindow):
         logdata2 = []
         action = 'Pressed' if pressed else 'Released'
         logdata2.append([ f'Mouse {action} at ({x}, {y}) with {button}'])
-        self.send_keymouse_data(logdata2, "on_click")
+        self.send_keymouse_data(logdata2, "on_click", client_socket)
         if (x,y) == (305,5) & pressed:
             data = "disconnect...."
             message = f"{exit}, {data}"
