@@ -38,19 +38,24 @@ class Dekstop(QMainWindow):
             conn.close()
         
 
-    def Mouse_solving(self, mouse_data):
-        if mouse_data.startswith("on_move"):
-            _, x, y = mouse_data.split(',')
+    def Mouse_solving(self, mouse_case, x, y, action, button):
+        if mouse_case.startswith("on_move"):
             pyautogui.moveTo(x, y)
-        elif mouse_data.startswith("on_click"):
-            _, x, y = mouse_data.split(',')
-            pyautogui.click(x, y)
-        elif mouse_data.startswith("on_scroll"):
-            _, x, y, dx, dy = mouse_data.split(',')
-            pyautogui.scroll(dx, dy)
+        elif mouse_case.startswith("on_click"):
+            if action.startwith("Pressed"):
+                pyautogui.mouseDown(button)
+            elif action.startwith("Released"):
+                pyautogui.mouseUp(button)
+        elif mouse_case.startswith("on_scroll"):
+            pyautogui.scroll(x, y)
 
-    def Character_solving(self, char_data):
-        print(0)
+    def Character_solving(self, char, action):
+        if action.startwwith("on_press"):
+            pyautogui.keyDown(char)
+        elif action.startwwith("on_release"):
+            pyautogui.keyDown(char)
+
+        
 
 
     
@@ -60,12 +65,12 @@ class Dekstop(QMainWindow):
                 data_nhận = conn.recv(9999999)
                 data = data_nhận.decode('utf-8')
                 if data.startswith("keyboard"):
-                    key, char_data = data.split(',')
-                    self.Character_solving(char_data)
+                    key, char, action = data.split(',')
+                    self.Character_solving(char)
 
                 elif data.startswith("mouse"):
-                    key, mouse_data = data.split(',')
-                    self.Mouse_solving(mouse_data)
+                    key, mouse_case, x, y, action, button,  = data.split(',')
+                    self.Mouse_solving(mouse_case, x, y, action, button)
                
      
         except ConnectionResetError:
