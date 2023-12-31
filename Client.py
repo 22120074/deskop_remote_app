@@ -1,7 +1,8 @@
 # Socket
 import socket
-import pickle# thư viện dùng để nén dữ liệu 
+
 from pynput import mouse
+from pynput.mouse import Button
 # Work with Image
 from PIL import ImageGrab #Import thư viện ImageGrab từ Pillow để chụp ảnh màn hình.
 import io #Import thư viện io để thao tác với dữ liệu nhị phân.
@@ -24,7 +25,7 @@ from PyQt5.QtNetwork import QTcpSocket
 from pynput import keyboard# thư viện để nhập kí tự từ bàn phím
 from datetime import datetime #datetime: Thư viện datetime dùng để làm việc với thời gian.
 
-server_address = ('127.0.0.1', 12345)
+server_address = ('25.12.20.192', 12345)
 
 class Dekstop(QMainWindow):
     def __init__(self):#def __init__(self):: Hàm khởi tạo của class Dekstop.
@@ -84,7 +85,7 @@ class Dekstop(QMainWindow):
     def ExitApp(self):
         self.close()
 
-    # Thread đổi ảnh _________________________________________________________________________________________________
+    # Thread đổi ảnh _______________________________________________________________________________________________
     def MainProgram(self):
         # Khởi tạo kết nối
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -113,7 +114,7 @@ class Dekstop(QMainWindow):
                 client_socket.close()
 
 
-    # Thread gửi kí tự _______________________________________________________________________________________________
+    # Thread gửi kí tự _____________________________________________________________________________________________
     def putkeyboard(self, client_socket):
         on_release = True
         while on_release != False:
@@ -134,19 +135,19 @@ class Dekstop(QMainWindow):
     def keyPressed(self, key, logdata):
         keyName = self.getKeyName(key)
         logdata.append([keyName])
+        self.send_keyboard_data(logdata,"on_press")
 
         
-    def keyReleased(self, key, logdata):
-        self.send_keyboard_data(logdata)
+    def keyReleased(self, key,logdata):
+        self.send_keyboard_data(logdata,"on_release")
         if key == keyboard.Key.esc:
-            self.send_keyboard_data(logdata)
             return False
 
-    def send_keyboard_data(self, logdata, client_socket):
-        message = f"{keyboard},{logdata}"
+    def send_keyboard_data(self, logdata, key,  client_socket):
+        message = f"{"keyboard"},{logdata},{key}"
         client_socket.send(message.encode('utf-8'))
 
-    # Thread gửi chuột ____________________________________________________________________________________________
+    # Thread gửi chuột __________________________________________________________________________________________
     def putkeymouse(self, client_socket):
         while True:
             with mouse.Listener(
@@ -156,37 +157,29 @@ class Dekstop(QMainWindow):
             ) as listener:
                 listener.join()
         
-    def on_move(self, x, y, client_socket):
-        logdata2 = []
-        logdata2.append([ f'Mouse moved to ({x}, {y})'])
-        self.send_keymouse_data(logdata2,"on_move", client_socket)
-        # mouse thì sẽ gửi là message = {key}, {trường hợp}, {x}, {y} nếu th là on_scroll thì thêm {dx}, {dy} cuối nũa
+    def on_move(self, x, y,client_socket):
+        th = "on_move"
+        message = f"{"mouse"},{th},{x},{y},{''},{''}"
+        client_socket.send(message.encode('utf-8'))
         
 
     def on_click(self, x, y, button, pressed, client_socket):
-        logdata2 = []
+        th="on_click"
         action = 'Pressed' if pressed else 'Released'
-        logdata2.append([ f'Mouse {action} at ({x}, {y}) with {button}'])
-        self.send_keymouse_data(logdata2, "on_click", client_socket)
-        if (x,y) == (305,5) & pressed:
-            data = "disconnect...."
-            message = f"{exit}, {data}"
-            client_socket.send(message.encode('utf-8'))
+        
+        if button==Button.right:
+            message = f"{"mouse"},{th},{x},{y},{action},{button}" 
+        if button==Button.left:
+            message = f"{"mouse"},{th},{x},{y},{action},{button}" 
+        else:
+            message = f"{"mouse"},{th},{x},{y},{action},{button}" 
+        client_socket.send(message.encode('utf-8'))
             
     def on_scroll(x, y, dx, dy, client_socket):
-        logdata2 = []
-        logdata2.append([ f'Scrolled at ({x}, {y}) with delta ({dx}, {dy})'])
         th = "on_roll"
-        message = f"{mouse},{th}, {logdata2}{dx}{dy}" # sửa lại mà mouse, th, dx, dy là đuọc rồi, có dấu phẩy phân ra
+        message = f"{"mouse"},{th},{dx},{dy},{''},{''}"
         client_socket.send(message.encode('utf-8'))
-
-
-    def send_keymouse_data(self, data, th, client_socket):
-        
-        # Tạo chuỗi message sử dụng f-string
-        message = f"{mouse},{th},{data}"
-            # Gửi message thông qua socket sau khi mã hóa bằng UTF-8
-        client_socket.send(message.encode('utf-8'))
+    
         
       
 
@@ -196,7 +189,7 @@ if __name__ == '__main__':
     ex.show()
     sys.exit(app.exec())
     
-# app = QApplication(sys.argv): Khởi tạo ứng dụng PyQt..
+# app = QApplication(sys.argv): Khởi tạo ứng dụng PyQt.
 #ex = Dekstop(): Tạo một đối tượng của class Dekstop.
 #ex.show(): Hiển thị cửa sổ ứng dụng.
 #sys.exit(app.exec()): Chạy vòng lặp sự kiện của PyQt.
