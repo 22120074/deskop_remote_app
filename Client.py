@@ -196,7 +196,7 @@ if __name__ == '__main__':
     ex.show()
     sys.exit(app.exec())
     
-# app = QApplication(sys.argv): Khởi tạo ứng dụng PyQt.
+# app = QApplication(sys.argv): Khởi tạo ứng dụng PyQt..
 #ex = Dekstop(): Tạo một đối tượng của class Dekstop.
 #ex.show(): Hiển thị cửa sổ ứng dụng.
 #sys.exit(app.exec()): Chạy vòng lặp sự kiện của PyQt.
