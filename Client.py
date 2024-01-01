@@ -1,6 +1,6 @@
 # Socket
 import socket
-
+import pickle# thư viện dùng để nén dữ liệu 
 from pynput import mouse
 from pynput.mouse import Button
 # Work with Image
@@ -85,7 +85,7 @@ class Dekstop(QMainWindow):
     def ExitApp(self):
         self.close()
 
-    # Thread đổi ảnh _______________________________________________________________________________________________
+    # Thread đổi ảnh _________________________________________________________________________________________________
     def MainProgram(self):
         # Khởi tạo kết nối
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -114,13 +114,13 @@ class Dekstop(QMainWindow):
                 client_socket.close()
 
 
-    # Thread gửi kí tự _____________________________________________________________________________________________
+    # Thread gửi kí tự _______________________________________________________________________________________________
     def putkeyboard(self, client_socket):
         on_release = True
-        while on_release != False:
+        while on_release:
             with keyboard.Listener(
-                on_press = self.keyPressed,
-                on_release = self.keyReleased
+                on_press =lambda key: self.keyPressed(key, client_socket),
+                on_release =lambda key: self.keyReleased(key, client_socket)
             ) as listener:
                 listener.join()
     
@@ -132,54 +132,66 @@ class Dekstop(QMainWindow):
             return str(key)
         
 
-    def keyPressed(self, key, logdata):
+    def keyPressed(self, key,client_socket):
         keyName = self.getKeyName(key)
-        logdata.append([keyName])
-        self.send_keyboard_data(logdata,"on_press")
+        message = f"{'keyboard'},{keyName},{'on_press'}"
+        client_socket.send(message.encode('utf-8'))
 
+      
         
-    def keyReleased(self, key,logdata):
-        self.send_keyboard_data(logdata,"on_release")
+    def keyReleased(self, key,client_socket):
+        keyName=self.getKeyName(key)
+        message = f"{'keyboard'},{keyName},{'on_release'}"
+        client_socket.send(message.encode('utf-8'))
         if key == keyboard.Key.esc:
             return False
 
-    def send_keyboard_data(self, logdata, key,  client_socket):
-        message = f"{"keyboard"},{logdata},{key}"
-        client_socket.send(message.encode('utf-8'))
+   
 
-    # Thread gửi chuột __________________________________________________________________________________________
+    # Thread gửi chuột ____________________________________________________________________________________________
     def putkeymouse(self, client_socket):
         while True:
             with mouse.Listener(
-                on_move=lambda x, y: self.on_move(x, y, client_socket),                                         #on_move: Được gọi khi chuột di chuyển.
-                on_click=lambda x, y, button, pressed: self.on_click(x, y, button, pressed, client_socket),     #on_click: Được gọi khi một nút chuột được nhấn hoặc nhả.
-                on_scroll=lambda x, y, dx, dy: self.on_scroll(x, y, dx, dy, client_socket)                      #on_scroll: Được gọi khi chuột được cuộn.
+                on_move = lambda x, y: self.on_move(x, y, client_socket),                                         #on_move: Được gọi khi chuột di chuyển.
+                on_click = lambda x, y, button, pressed: self.on_click(x, y, button, pressed, client_socket),     #on_click: Được gọi khi một nút chuột được nhấn hoặc nhả.
+                on_scroll = lambda x, y, dx, dy: self.on_scroll(dx, dy, client_socket)                      #on_scroll: Được gọi khi chuột được cuộn.
             ) as listener:
+                print('1')
                 listener.join()
         
-    def on_move(self, x, y,client_socket):
+    def on_move(self, x, y, client_socket):
         th = "on_move"
-        message = f"{"mouse"},{th},{x},{y},{''},{''}"
+        message = f"{'mouse'},{th},{x},{y},{'_'},{'_'}"
+        # print(message)
         client_socket.send(message.encode('utf-8'))
         
 
     def on_click(self, x, y, button, pressed, client_socket):
-        th="on_click"
+        th = "on_click"
         action = 'Pressed' if pressed else 'Released'
         
-        if button==Button.right:
-            message = f"{"mouse"},{th},{x},{y},{action},{button}" 
-        if button==Button.left:
-            message = f"{"mouse"},{th},{x},{y},{action},{button}" 
+        if button == Button.right:
+            message = f"{'mouse'},{th},{x},{y},{action},{button}" 
+
+        if button == Button.left:
+            message = f"{'mouse'},{th},{x},{y},{action},{button}" 
+
         else:
-            message = f"{"mouse"},{th},{x},{y},{action},{button}" 
+            message = f"{'mouse'},{th},{x},{y},{action},{button}" 
+
         client_socket.send(message.encode('utf-8'))
+
+
             
-    def on_scroll(x, y, dx, dy, client_socket):
+    def on_scroll(self, dx, dy, client_socket):
         th = "on_roll"
-        message = f"{"mouse"},{th},{dx},{dy},{''},{''}"
+       
+        message = f"{'mouse'},{th},{dx},{dy},{'_'},{'_'}"
         client_socket.send(message.encode('utf-8'))
-    
+
+
+
+   
         
       
 

@@ -55,29 +55,6 @@ class Dekstop(QMainWindow):
         elif action.startwwith("on_release"):
             pyautogui.keyDown(char)
 
-        
-
-
-    
-    def input_from_deviece(self, conn):
-        try:
-            while(True):
-                data_nhận = conn.recv(9999999)
-                data = data_nhận.decode('utf-8')
-                if data.startswith("keyboard"):
-                    key, char, action = data.split(',')
-                    self.Character_solving(char)
-
-                elif data.startswith("mouse"):
-                    key, mouse_case, x, y, action, button,  = data.split(',')
-                    self.Mouse_solving(mouse_case, x, y, action, button)
-               
-     
-        except ConnectionResetError:
-            QMessageBox.about(self, "ERROR", "[SERVER]: The remote host forcibly terminated the existing connection!")
-            
-
-
     def initUI(self):
         while True:
             conn, addr = sock.accept()
@@ -87,9 +64,18 @@ class Dekstop(QMainWindow):
                     # Luồng gửi data
                     self.output_thread = Thread(target = self.ChangeImage(conn), daemon = True)
                     self.output_thread.start()                     
-                    # Luông nhận data
-                    self.input_thread = Thread(target = self.input_from_deviece(conn), daemon = True)
-                    self.input_thread.start()
+
+                    while(True):
+                        data_nhận = conn.recv(9999999)
+                        data = data_nhận.decode('utf-8')
+                        
+                        if data.startswith("keyboard"):
+                            key, char, action = data.split(',')
+                            self.Character_solving(char)
+
+                        elif data.startswith("mouse"):
+                            key, mouse_case, x, y, action, button,  = data.split(',')
+                            self.Mouse_solving(mouse_case, x, y, action, button)
                 except:
                     print(f"Connection with {addr} closed")
                     
