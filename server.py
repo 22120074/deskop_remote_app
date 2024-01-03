@@ -24,8 +24,8 @@ sock.listen(5)
 class Dekstop(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.initUI()
-        
+        self.MainProgram = Thread(target = self.initUI, daemon = True)
+        self.MainProgram.start()
 
     def ChangeImage(self, conn):
         try:
@@ -59,16 +59,16 @@ class Dekstop(QMainWindow):
         while True:
             conn, addr = sock.accept()
             with conn:
+                # Luồng gửi data ảnh
+                self.output_thread = Thread(target = lambda: self.ChangeImage(conn), daemon = True)
+                self.output_thread.start()                     
+
                 print(f"Connected by {addr}")
                 try:
-                    # Luồng gửi data
-                    self.output_thread = Thread(target = self.ChangeImage(conn), daemon = True)
-                    self.output_thread.start()                     
-
                     while(True):
-                        data_nhận = conn.recv(9999999)
+                        data_nhận = conn.recv(9999)
                         data = data_nhận.decode('utf-8')
-                        
+                        print(data)
                         if data.startswith("keyboard"):
                             key, char, action = data.split(',')
                             self.Character_solving(char)
@@ -77,13 +77,10 @@ class Dekstop(QMainWindow):
                             key, mouse_case, x, y, action, button,  = data.split(',')
                             self.Mouse_solving(mouse_case, x, y, action, button)
                 except:
-                    print(f"Connection with {addr} closed")
-                    
-        # Luông gửi data 
+                    print(f"Connection with {addr} closed")              
         
     
 if __name__ == '__main__':
-    
     app = QApplication(sys.argv)
     ex = Dekstop()
     ex.show()

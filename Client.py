@@ -1,6 +1,5 @@
 # Socket
 import socket
-import pickle# thư viện dùng để nén dữ liệu 
 from pynput import mouse
 from pynput.mouse import Button
 # Work with Image
@@ -18,14 +17,9 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QLabel, QPushBut
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import QRect, Qt, pyqtSlot
 from PyQt5.QtNetwork import QTcpSocket
-# from PyQt5.QtWidgets import ...: Import các lớp và phương thức từ PyQt5 để xây dựng giao diện người dùng.
-#from PyQt5.QtGui import ...: Import các lớp và phương thức từ PyQt5 để làm việc với đồ họa.
-#from PyQt5.QtCore import ...: Import các lớp và phương thức từ PyQt5 để sử dụng các tính năng cơ bản của PyQt5.
-
 from pynput import keyboard# thư viện để nhập kí tự từ bàn phím
-from datetime import datetime #datetime: Thư viện datetime dùng để làm việc với thời gian.
 
-server_address = ('25.12.20.192', 12345)
+server_address = ('127.0.0.1', 12345)
 
 class Dekstop(QMainWindow):
     def __init__(self):#def __init__(self):: Hàm khởi tạo của class Dekstop.
@@ -68,13 +62,14 @@ class Dekstop(QMainWindow):
     def StartThread(self): #def StartThread(self):: Hàm khởi động thread khi nút "Start Demo" được nhấn.
         # Khởi tạo Dialog mới để hiển thị hình ảnh
         self.label2.setPixmap(self.pixmap)
-        self.label2.resize(1800, 800)
+        self.label2.resize(1900, 800)
         self.label2.setFixedSize(self.width(), self.height())
         
         self.newWindow.setGeometry(QRect(0, 0, 400, 90))
-        self.newWindow.setFixedSize(1800, 800)
+        self.newWindow.setFixedSize(1900, 800)
         self.newWindow.setWindowTitle("[Server] Remote Desktop: " + str(randint(99999, 999999)))
         self.newWindow.show()
+
         # Khởi tạo Main Program
         self.thread = Thread(target = self.MainProgram, daemon = True)
         self.thread.start()
@@ -92,24 +87,23 @@ class Dekstop(QMainWindow):
         client_socket.connect(server_address)
         
         with client_socket:
-            try:
-                # self.start = Thread(target = lambda: self.ChangeImage(client_socket), daemon = True)
-                # self.start.start()
+            # self.start = Thread(target = lambda: self.ChangeImage(client_socket), daemon = True)
+            # self.start.start()
            
-                self.thread_keyboard = Thread(target = lambda: self.putkeyboard(client_socket), daemon = True)
-                self.thread_keyboard.start()
+            self.thread_keyboard = Thread(target = lambda: self.putkeyboard(client_socket), daemon = True)
+            self.thread_keyboard.start()
 
-                self.thread_mouse = Thread(target = lambda: self.putkeymouse(client_socket), daemon = True)         
-                self.thread_mouse.start()
+            self.thread_mouse = Thread(target = lambda: self.putkeymouse(client_socket), daemon = True)         
+            self.thread_mouse.start()
 
+            try:
                 while True:
                     img_bytes = client_socket.recv(9999999)
                     self.pixmap.loadFromData(img_bytes)
                     self.label2.setPixmap(self.pixmap)
                     self.label2.setScaledContents(True)
-                    self.label2.setAlignment(Qt.AlignCenter) 
+                    self.label2.setAlignment(Qt.AlignCenter)
                     self.label2.setFixedSize(1800, 800)
-                
             except:
                 client_socket.close()
 
@@ -154,15 +148,14 @@ class Dekstop(QMainWindow):
             with mouse.Listener(
                 on_move = lambda x, y: self.on_move(x, y, client_socket),                                         #on_move: Được gọi khi chuột di chuyển.
                 on_click = lambda x, y, button, pressed: self.on_click(x, y, button, pressed, client_socket),     #on_click: Được gọi khi một nút chuột được nhấn hoặc nhả.
-                on_scroll = lambda x, y, dx, dy: self.on_scroll(dx, dy, client_socket)                      #on_scroll: Được gọi khi chuột được cuộn.
+                on_scroll = lambda x, y, dx, dy: self.on_scroll(dx, dy, client_socket)                            #on_scroll: Được gọi khi chuột được cuộn.
             ) as listener:
-                print('1')
                 listener.join()
         
     def on_move(self, x, y, client_socket):
         th = "on_move"
         message = f"{'mouse'},{th},{x},{y},{'_'},{'_'}"
-        # print(message)
+        print(message)
         client_socket.send(message.encode('utf-8'))
         
 
@@ -182,7 +175,6 @@ class Dekstop(QMainWindow):
         client_socket.send(message.encode('utf-8'))
 
 
-            
     def on_scroll(self, dx, dy, client_socket):
         th = "on_roll"
        
@@ -190,10 +182,6 @@ class Dekstop(QMainWindow):
         client_socket.send(message.encode('utf-8'))
 
 
-
-   
-        
-      
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
