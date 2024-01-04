@@ -1,7 +1,7 @@
 import socket
 from os import getlogin
 from PIL import Image, ImageGrab #Import thư viện ImageGrab từ Pillow để chụp ảnh màn hình.
-
+import time
 import io
 from io import BytesIO
 import numpy as np
@@ -15,7 +15,7 @@ from PyQt5.QtCore import QRect, Qt, QThread, pyqtSignal
 
 
 print("[SERVER]: STARTED")
-server_address = ('127.0.0.1', 12345)
+server_address = ('25.12.20.192', 12345)
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.bind(server_address) # Server
 sock.listen(5)
@@ -35,32 +35,29 @@ class Dekstop(QMainWindow):
                 conn.send(img_bytes.getvalue())
         except:
             conn.close()
-        
 
     def Mouse_solving(self, mouse_case, x, y, action, button):
         try:
             if mouse_case.startswith("on_move"):
                 pyautogui.moveTo(int(x), int(y))
             elif mouse_case.startswith("on_click"):
-                if action.startwith("Pressed"):
-                    pyautogui.mouseDown(button = button)
-                elif action.startwith("Released"):
-                    pyautogui.mouseUp(button = button)
+                if action.startswith("Pressed"):
+                    pyautogui.mouseDown(button=button)
+                elif action.startswith("Released"):
+                    pyautogui.mouseUp(button=button)
             elif mouse_case.startswith("on_scroll"):
                 pyautogui.scroll(int(x), int(y))
         except:
             print("Mouse Error")
 
-    def Character_solving(self, char, action):
+    def Character_solving(self, charc, action):
         try:
-            if action.startwwith("on_press"):
-                pyautogui.keyDown(char)
-            elif action.startwwith("on_release"):
-                pyautogui.keyDown(char)
+            if action.startswith("on_press"):
+                pyautogui.keyDown(charc)
+            elif action.startswith("on_release"):
+                pyautogui.keyUp(charc)
         except:
             print("Keyboard Error")
-    
-
 
     def initUI(self):
         self.MainProgram = Thread(target = self.Main_Program, daemon = True)
@@ -80,13 +77,13 @@ class Dekstop(QMainWindow):
                     while(True):
                         data_nhận = conn.recv(9999)
                         data = data_nhận.decode('utf-8')
-                        # print(data)
+                        print(data)
                         if data.startswith("keyboard"):
                             key, char, action = data.split(',')
-                            self.Character_solving(char)
+                            self.Character_solving(char, action)
 
                         elif data.startswith("mouse"):
-                            key, mouse_case, x, y, action, button,  = data.split(',')
+                            key, mouse_case, x, y, action, button  = data.split(',')
                             self.Mouse_solving(mouse_case, x, y, action, button)
                 except:
                     print(f"Connection with {addr} closed")              
