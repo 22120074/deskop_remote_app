@@ -164,20 +164,19 @@ class Dekstop(QMainWindow):
         action = 'Pressed' if pressed else 'Released'
         
         if button == Button.right:
-            message = f"{'mouse'},{th},{x},{y},{action},{button}" 
+            message = f"{'mouse'},{th},{x},{y},{action},{'right'}" 
 
         if button == Button.left:
-            message = f"{'mouse'},{th},{x},{y},{action},{button}" 
+            message = f"{'mouse'},{th},{x},{y},{action},{'left'}" 
 
         else:
-            message = f"{'mouse'},{th},{x},{y},{action},{button}" 
+            message = f"{'mouse'},{th},{x},{y},{action},{'middle'}" 
 
         client_socket.send(message.encode('utf-8'))
 
 
     def on_scroll(self, dx, dy, client_socket):
         th = "on_roll"
-       
         message = f"{'mouse'},{th},{dx},{dy},{'_'},{'_'}"
         client_socket.send(message.encode('utf-8'))
 

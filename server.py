@@ -23,9 +23,9 @@ sock.listen(5)
 # Deskop Show
 class Dekstop(QMainWindow):
     def __init__(self):
-        self.MainProgram = Thread(target = self.Main_Program, daemon = True)
-        self.MainProgram.start()
-   
+        super().__init__()
+        self.initUI()
+
     def ChangeImage(self, conn):
         try:
             while True:
@@ -39,14 +39,14 @@ class Dekstop(QMainWindow):
 
     def Mouse_solving(self, mouse_case, x, y, action, button):
         if mouse_case.startswith("on_move"):
-            pyautogui.moveTo(x, y)
+            pyautogui.moveTo(int(x), int(y))
         elif mouse_case.startswith("on_click"):
             if action.startwith("Pressed"):
-                pyautogui.mouseDown(button)
+                pyautogui.mouseDown(button = button)
             elif action.startwith("Released"):
-                pyautogui.mouseUp(button)
+                pyautogui.mouseUp(button = button)
         elif mouse_case.startswith("on_scroll"):
-            pyautogui.scroll(x, y)
+            pyautogui.scroll(int(x), int(y))
 
     def Character_solving(self, char, action):
         if action.startwwith("on_press"):
@@ -54,6 +54,11 @@ class Dekstop(QMainWindow):
         elif action.startwwith("on_release"):
             pyautogui.keyDown(char)
     
+
+
+    def initUI(self):
+        self.MainProgram = Thread(target = self.Main_Program, daemon = True)
+        self.MainProgram.start()
     
     def Main_Program(self):
         while True:
@@ -82,6 +87,7 @@ class Dekstop(QMainWindow):
     
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    ex = Dekstop()
     sys.exit(app.exec())
     
 
