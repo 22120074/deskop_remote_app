@@ -1,4 +1,5 @@
 # Socket
+import time
 import socket
 from pynput import mouse
 from pynput.mouse import Button
@@ -130,8 +131,8 @@ class Dekstop(QMainWindow):
         keyName = self.getKeyName(key)
         message = f"{'keyboard'},{keyName},{'on_press'}"
         client_socket.send(message.encode('utf-8'))
+        time.sleep(0.2)
 
-      
         
     def keyReleased(self, key,client_socket):
         keyName = self.getKeyName(key)
@@ -139,6 +140,7 @@ class Dekstop(QMainWindow):
         client_socket.send(message.encode('utf-8'))
         if key == keyboard.Key.esc:
             return False
+        time.sleep(0.2)
 
    
 
@@ -155,8 +157,9 @@ class Dekstop(QMainWindow):
     def on_move(self, x, y, client_socket):
         th = "on_move"
         message = f"{'mouse'},{th},{x},{y},{'_'},{'_'}"
-        print(message)
         client_socket.send(message.encode('utf-8'))
+        time.sleep(0.2)
+
         
 
     def on_click(self, x, y, button, pressed, client_socket):
@@ -170,15 +173,19 @@ class Dekstop(QMainWindow):
             message = f"{'mouse'},{th},{x},{y},{action},{'left'}" 
 
         else:
-            message = f"{'mouse'},{th},{x},{y},{action},{'middle'}" 
+            message = f"{'mouse'},{th},{x},{y},{action},{'middle'}"
 
         client_socket.send(message.encode('utf-8'))
+        time.sleep(0.2)
+
+
 
 
     def on_scroll(self, dx, dy, client_socket):
         th = "on_roll"
         message = f"{'mouse'},{th},{dx},{dy},{'_'},{'_'}"
         client_socket.send(message.encode('utf-8'))
+        time.sleep(0.2)
 
 
 
