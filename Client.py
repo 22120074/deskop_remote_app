@@ -134,7 +134,7 @@ class Dekstop(QMainWindow):
       
         
     def keyReleased(self, key,client_socket):
-        keyName=self.getKeyName(key)
+        keyName = self.getKeyName(key)
         message = f"{'keyboard'},{keyName},{'on_release'}"
         client_socket.send(message.encode('utf-8'))
         if key == keyboard.Key.esc:

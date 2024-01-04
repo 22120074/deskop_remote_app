@@ -38,21 +38,27 @@ class Dekstop(QMainWindow):
         
 
     def Mouse_solving(self, mouse_case, x, y, action, button):
-        if mouse_case.startswith("on_move"):
-            pyautogui.moveTo(int(x), int(y))
-        elif mouse_case.startswith("on_click"):
-            if action.startwith("Pressed"):
-                pyautogui.mouseDown(button = button)
-            elif action.startwith("Released"):
-                pyautogui.mouseUp(button = button)
-        elif mouse_case.startswith("on_scroll"):
-            pyautogui.scroll(int(x), int(y))
+        try:
+            if mouse_case.startswith("on_move"):
+                pyautogui.moveTo(int(x), int(y))
+            elif mouse_case.startswith("on_click"):
+                if action.startwith("Pressed"):
+                    pyautogui.mouseDown(button = button)
+                elif action.startwith("Released"):
+                    pyautogui.mouseUp(button = button)
+            elif mouse_case.startswith("on_scroll"):
+                pyautogui.scroll(int(x), int(y))
+        except:
+            print("Mouse Error")
 
     def Character_solving(self, char, action):
-        if action.startwwith("on_press"):
-            pyautogui.keyDown(char)
-        elif action.startwwith("on_release"):
-            pyautogui.keyDown(char)
+        try:
+            if action.startwwith("on_press"):
+                pyautogui.keyDown(char)
+            elif action.startwwith("on_release"):
+                pyautogui.keyDown(char)
+        except:
+            print("Keyboard Error")
     
 
 
@@ -64,6 +70,7 @@ class Dekstop(QMainWindow):
         while True:
             conn, addr = sock.accept()
             with conn:
+                print("----------Connected----------")
                 print(f"Connected by {addr}")
                 try:
                      # Luồng gửi data ảnh
@@ -73,7 +80,7 @@ class Dekstop(QMainWindow):
                     while(True):
                         data_nhận = conn.recv(9999)
                         data = data_nhận.decode('utf-8')
-                        print(data)
+                        # print(data)
                         if data.startswith("keyboard"):
                             key, char, action = data.split(',')
                             self.Character_solving(char)
