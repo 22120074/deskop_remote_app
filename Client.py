@@ -19,7 +19,7 @@ from PyQt5.QtCore import QRect, Qt, pyqtSlot
 from PyQt5.QtNetwork import QTcpSocket
 from pynput import keyboard# thư viện để nhập kí tự từ bàn phím
 
-server_address = ('127.0.0.1', 12345)
+server_address = ('25.12.20.192', 12345)
 
 class Dekstop(QMainWindow):
     def __init__(self):#def __init__(self):: Hàm khởi tạo của class Dekstop.
@@ -62,11 +62,11 @@ class Dekstop(QMainWindow):
     def StartThread(self): #def StartThread(self):: Hàm khởi động thread khi nút "Start Demo" được nhấn.
         # Khởi tạo Dialog mới để hiển thị hình ảnh
         self.label2.setPixmap(self.pixmap)
-        self.label2.resize(1900, 800)
+        self.label2.resize(1920, 800)
         self.label2.setFixedSize(self.width(), self.height())
         
         self.newWindow.setGeometry(QRect(0, 0, 400, 90))
-        self.newWindow.setFixedSize(1900, 800)
+        self.newWindow.setFixedSize(1920, 800)
         self.newWindow.setWindowTitle("[Server] Remote Desktop: " + str(randint(99999, 999999)))
         self.newWindow.show()
 
@@ -103,7 +103,7 @@ class Dekstop(QMainWindow):
                     self.label2.setPixmap(self.pixmap)
                     self.label2.setScaledContents(True)
                     self.label2.setAlignment(Qt.AlignCenter)
-                    self.label2.setFixedSize(1800, 800)
+                    self.label2.setFixedSize(1920, 800)
             except:
                 client_socket.close()
 

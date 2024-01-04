@@ -24,9 +24,8 @@ sock.listen(5)
 class Dekstop(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.MainProgram = Thread(target = self.initUI, daemon = True)
-        self.MainProgram.start()
-
+        self.initUI()
+   
     def ChangeImage(self, conn):
         try:
             while True:
@@ -54,17 +53,23 @@ class Dekstop(QMainWindow):
             pyautogui.keyDown(char)
         elif action.startwwith("on_release"):
             pyautogui.keyDown(char)
+    
+
 
     def initUI(self):
+        self.MainProgram = Thread(target = self.Main_Program, daemon = True)
+        self.MainProgram.start()
+    
+    def Main_Program(self):
         while True:
             conn, addr = sock.accept()
             with conn:
-                # Luồng gửi data ảnh
-                self.output_thread = Thread(target = lambda: self.ChangeImage(conn), daemon = True)
-                self.output_thread.start()                     
-
                 print(f"Connected by {addr}")
                 try:
+                     # Luồng gửi data ảnh
+                    self.output_thread = Thread(target = lambda: self.ChangeImage(conn), daemon = True)
+                    self.output_thread.start()                     
+
                     while(True):
                         data_nhận = conn.recv(9999)
                         data = data_nhận.decode('utf-8')
