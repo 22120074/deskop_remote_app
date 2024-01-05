@@ -42,9 +42,11 @@ class Dekstop(QMainWindow):
                 pyautogui.moveTo(int(x), int(y))
             elif mouse_case.startswith("on_click"):
                 if action.startswith("Pressed"):
+
                     pyautogui.mouseDown(button = button)
                 elif action.startswith("Released"):
                     pyautogui.mouseUp(button = button)
+
             elif mouse_case.startswith("on_scroll"):
                 pyautogui.scroll(int(y))
         except:
