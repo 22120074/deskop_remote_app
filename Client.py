@@ -131,7 +131,7 @@ class Dekstop(QMainWindow):
         keyName = self.getKeyName(key)
         message = f"{'keyboard'},{keyName},{'on_press'}"
         client_socket.send(message.encode('utf-8'))
-        time.sleep(0.2)
+        time.sleep(0.1)
 
         
     def keyReleased(self, key,client_socket):
@@ -140,7 +140,7 @@ class Dekstop(QMainWindow):
         client_socket.send(message.encode('utf-8'))
         if key == keyboard.Key.esc:
             return False
-        time.sleep(0.2)
+        time.sleep(0.05)
 
    
 
@@ -176,7 +176,7 @@ class Dekstop(QMainWindow):
             message = f"{'mouse'},{th},{x},{y},{action},{'middle'}"
 
         client_socket.send(message.encode('utf-8'))
-        time.sleep(0.2)
+        time.sleep(0.1)
 
 
 
