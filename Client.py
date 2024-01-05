@@ -172,7 +172,7 @@ class Dekstop(QMainWindow):
         if button == Button.left:
             message = f"{'mouse'},{th},{x},{y},{action},{'left'}" 
 
-        else:
+        if button == Button.middle:
             message = f"{'mouse'},{th},{x},{y},{action},{'middle'}"
 
         client_socket.send(message.encode('utf-8'))
