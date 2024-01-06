@@ -63,11 +63,11 @@ class Dekstop(QMainWindow):
     def StartThread(self): #def StartThread(self):: Hàm khởi động thread khi nút "Start Demo" được nhấn.
         # Khởi tạo Dialog mới để hiển thị hình ảnh
         self.label2.setPixmap(self.pixmap)
-        self.label2.resize(1920, 800)
+        self.label2.resize(1920, 1080)
         self.label2.setFixedSize(self.width(), self.height())
         
-        self.newWindow.setGeometry(QRect(0, 0, 400, 90))
-        self.newWindow.setFixedSize(1920, 800)
+        self.newWindow.setGeometry(QRect(0, -5, 400, 90))
+        self.newWindow.setFixedSize(1920, 1080)
         self.newWindow.setWindowTitle("[Server] Remote Desktop: " + str(randint(99999, 999999)))
         self.newWindow.show()
 
@@ -104,7 +104,7 @@ class Dekstop(QMainWindow):
                     self.label2.setPixmap(self.pixmap)
                     self.label2.setScaledContents(True)
                     self.label2.setAlignment(Qt.AlignCenter)
-                    self.label2.setFixedSize(1920, 800)
+                    self.label2.setFixedSize(1920, 1080)
             except:
                 client_socket.close()
 
@@ -125,7 +125,7 @@ class Dekstop(QMainWindow):
             return key.char
         else:
             return str(key)
-        
+
 
     def keyPressed(self, key,client_socket):
         keyName = self.getKeyName(key)
