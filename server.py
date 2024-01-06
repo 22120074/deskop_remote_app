@@ -53,11 +53,11 @@ class Dekstop(QMainWindow):
     def Character_solving(self, charc, action):
         try:
             if action.startswith("on_press"):
-                if charc.startswith(""):
+                if charc.startswith("Key"):
                     _, charc = charc.split('.')
                 pyautogui.keyDown(charc)
             elif action.startswith("on_release"):
-                if charc.startswith(""):
+                if charc.startswith("Key"):
                     _, charc = charc.split('.')
                 pyautogui.keyUp(charc)
         except:
@@ -69,15 +69,15 @@ class Dekstop(QMainWindow):
     
     def Main_Program(self):
         while True:
+
             conn, addr = sock.accept()
             with conn:
                 print("----------Connected----------")
                 print(f"Connected by {addr}")
+                # Luồng gửi data ảnh
+                self.output_thread = Thread(target = lambda: self.ChangeImage(conn), daemon = True)
+                self.output_thread.start()                     
                 try:
-                     # Luồng gửi data ảnh
-                    self.output_thread = Thread(target = lambda: self.ChangeImage(conn), daemon = True)
-                    self.output_thread.start()                     
-
                     while(True):
                         data_nhận = conn.recv(9999)
                         data = data_nhận.decode('utf-8')
