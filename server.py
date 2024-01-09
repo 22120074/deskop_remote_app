@@ -16,7 +16,7 @@ from queue import Queue
 
 
 print("[SERVER]: STARTED")
-server_address = ('25.57.1.139', 12345)
+server_address = ('172.16.26.138', 12345)
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)                
 sock.bind(server_address) # Server  
 sock.listen(5)
@@ -39,15 +39,16 @@ class Dekstop(QMainWindow):
 
     def Queue_solving(self, queue_, conn):
         try:
+            print("Queue Started")
             while True:
-                if not queue_.empty():
-                    data = queue_.get()
-                    if data.startswith("keyboard"):
-                        key, char, action = data.split(',')
-                        self.Character_solving(char, action, conn)
-                    elif data.startswith("mouse"):
-                        key, mouse_case, x, y, action, button  = data.split(',')
-                        self.Mouse_solving(mouse_case, x, y, action, button)
+                data = queue_.get()
+                messages = data.split()  # Split messages based on a delimiter
+                for message in messages:
+                    if message:
+                        print("Processing data:", message)
+                        if message.startswith("mouse"):
+                            key, mouse_case, x, y, action, button  = message.split(',')
+                            self.Mouse_solving(mouse_case, x, y, action, button)
         except Exception as e:
             print(e)
             print("Queue Error")
@@ -106,8 +107,10 @@ class Dekstop(QMainWindow):
                     while(True):
                         data_nhận = conn.recv(99999)
                         data = data_nhận.decode('utf-8')
+                        print(data)
                         self.queue_.put(data)
-                except:
+                except Exception as e:
+                    print(e)
                     print(f"Connection with {addr} closed")              
         
     

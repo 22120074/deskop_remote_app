@@ -189,7 +189,7 @@ class Dekstop(QMainWindow):
 
     def on_scroll(self, dx, dy, client_socket):
         th = "on_roll"
-        message = f"{'mouse'},{th},{dx},{dy},{'_'},{'_'}"
+        message = f"{'mouse'},{th},{dx},{dy},{'_'},{'_'} "
         client_socket.send(message.encode('utf-8'))
         time.sleep(0.3)
 
