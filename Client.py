@@ -19,8 +19,6 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import QRect, Qt, pyqtSlot
 from PyQt5.QtNetwork import QTcpSocket
 
-server_address = ('25.18.36.165', 12345)
-
 class Dekstop(QMainWindow):
     def __init__(self): # def __init__(self):: Hàm khởi tạo của class Dekstop.
         super().__init__()
@@ -165,7 +163,8 @@ class Dekstop(QMainWindow):
         th = "on_move"
         message = f"{'mouse'},{th},{x},{y},{'_'},{'_'}"
         client_socket.send(message.encode('utf-8'))
-        time.sleep(0.3)
+        # time.sleep(0.2)
+        
                                                                                                                                                                                                                 
         
 

@@ -12,10 +12,11 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QLabel, QPushBut
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import QRect, Qt, QThread, pyqtSignal
 import time
+from queue import Queue
 
 
 print("[SERVER]: STARTED")
-server_address = ('192.168.8.184', 12345)
+server_address = ('127.0.0.1', 12345)
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)                
 sock.bind(server_address) # Server  
 sock.listen(5)
@@ -27,7 +28,6 @@ class Dekstop(QMainWindow):
         self.initUI()
 
     def ChangeImage(self, conn):
-        time.sleep(0.1)
         try:
             while True:
                 img = ImageGrab.grab()
@@ -36,6 +36,20 @@ class Dekstop(QMainWindow):
                 conn.send(img_bytes.getvalue())
         except:
             conn.close()
+
+    def Queue_solving(self, queue_, conn):
+        try:
+            while True:
+                if not queue_.empty():
+                    data = queue_.get()
+                    if data.startswith("keyboard"):
+                        key, char, action = data.split(',')
+                        self.Character_solving(char, action, conn)
+                    elif data.startswith("mouse"):
+                        key, mouse_case, x, y, action, button  = data.split(',')
+                        self.Mouse_solving(mouse_case, x, y, action, button)
+        except:
+            print("Queue Error")
 
     def Mouse_solving(self, mouse_case, x, y, action, button):
         try:
@@ -73,28 +87,24 @@ class Dekstop(QMainWindow):
         self.MainProgram.start()
     
     def Main_Program(self):
-        
-        while True:
+        # Khởi tạo Queue để xử lí dữ liệu từ Client
+        self.queue_ = Queue()
 
+        while True:
             conn, addr = sock.accept()
             with conn:
                 print("----------Connected----------")
                 print(f"Connected by {addr}")
                 # Luồng gửi data ảnh
                 self.output_thread = Thread(target = lambda: self.ChangeImage(conn), daemon = True)
-                self.output_thread.start()                     
+                self.output_thread.start()  
+                # Luồng nhận data từ Queue
+                self.input_thread = Thread(target = lambda: self.Queue_solving(self.queue_, conn), daemon = True)                   
                 try:
                     while(True):
                         data_nhận = conn.recv(99999)
                         data = data_nhận.decode('utf-8')
-                        # print(data)
-                        if data.startswith("keyboard"):
-                            key, char, action = data.split(',')
-                            self.Character_solving(char, action, conn)
-
-                        elif data.startswith("mouse"):
-                            key, mouse_case, x, y, action, button  = data.split(',')
-                            self.Mouse_solving(mouse_case, x, y, action, button)
+                        self.queue_.put(data)
                 except:
                     print(f"Connection with {addr} closed")              
         
