@@ -161,7 +161,7 @@ class Dekstop(QMainWindow):
         
     def on_move(self, x, y, client_socket):
         th = "on_move"
-        message = f"{'mouse'},{th},{x},{y},{'_'},{'_'}"
+        message = f"{'mouse'},{th},{x},{y},{'_'},{'_'} "
         client_socket.send(message.encode('utf-8'))
         # time.sleep(0.2)
         
