@@ -1,7 +1,7 @@
 # Socket
 import time
 import socket
-from pynput import mouse
+from pynput import mouse, keyboard
 from pynput.mouse import Button
 # Work with Image
 from PIL import ImageGrab #Import thư viện ImageGrab từ Pillow để chụp ảnh màn hình.
@@ -18,50 +18,51 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QLabel, QPushBut
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import QRect, Qt, pyqtSlot
 from PyQt5.QtNetwork import QTcpSocket
-from pynput import keyboard# thư viện để nhập kí tự từ bàn phím
 
-server_address = ('25.12.20.192', 12345)
+server_address = ('25.18.36.165', 12345)
 
 class Dekstop(QMainWindow):
-    def __init__(self):#def __init__(self):: Hàm khởi tạo của class Dekstop.
+    def __init__(self): # def __init__(self):: Hàm khởi tạo của class Dekstop.
         super().__init__()
         self.initUI()
 
-    def initUI(self):#def initUI(self):: Hàm tạo giao diện người dùng của ứng dụng.
-        
+    def initUI(self): # def initUI(self):: Hàm tạo giao diện người dùng của ứng dụng.
+        # Khởi tạo pixmap
         self.pixmap = QPixmap()
-        
+        # Khởi tạo Dialog mới để hiển thị hình ảnh
         self.newWindow = QDialog()
-        
+        # Khởi tạo label mới để đăng nhập
         self.label = QLabel(self)
-
+        # Khởi tạo label mới để hiển thị hình ảnh
         self.label2 = QLabel(parent = self.newWindow)
 
         self.label.setPixmap(self.pixmap)
         self.label.resize(self.width(), self.height())
-        self.setGeometry(QRect(pyautogui.size()[0] // 4, pyautogui.size()[1] // 4, 400, 90))
+        self.setGeometry(QRect(pyautogui.size()[0] // 4 + 170, pyautogui.size()[1] // 4, 600, 200))
         self.setFixedSize(self.width(), self.height())
         self.setWindowTitle("[CLIENT] Remote Desktop: " + str(randint(99999, 999999)))
-        
 
-        self.btn = QPushButton(self) # nút khởi động chương trình
-        self.btn.move(5, 55)
-        self.btn.resize(390, 30)
-        self.btn.setText("Start Demo")
-        self.btn.clicked.connect(self.StartThread)
+        self.button = QPushButton(self) # nút khởi động chương trình
+        self.button.move(150, 100)
+        self.button.resize(300, 90)
+        self.button.setStyleSheet("font-size: 30px")
+        self.button.setText("Start Demo")
+        self.button.clicked.connect(self.StartThread)
 
-        self.ip = QLineEdit(self) 
-        self.ip.move(5, 5)
-        self.ip.resize(390, 20)
+        self.ip = QLineEdit(self) # edit text để nhập IP
+        self.ip.move(70, 5)
+        self.ip.resize(460, 45)
+        self.ip.setStyleSheet("font-size: 30px")
         self.ip.setPlaceholderText("IP")
 
-        self.port = QLineEdit(self)
-        self.port.move(5, 30)
-        self.port.resize(390, 20)
+        self.port = QLineEdit(self) # edit text để nhập PORT
+        self.port.move(70, 55)
+        self.port.resize(460, 45)
+        self.port.setStyleSheet("font-size: 30px")
         self.port.setPlaceholderText("PORT")
 
     def StartThread(self): #def StartThread(self):: Hàm khởi động thread khi nút "Start Demo" được nhấn.
-        # Khởi tạo Dialog mới để hiển thị hình ảnh
+        
         self.label2.setPixmap(self.pixmap)
         self.label2.resize(1920, 1080)
         self.label2.setFixedSize(self.width(), self.height())
@@ -72,41 +73,47 @@ class Dekstop(QMainWindow):
         self.newWindow.show()
 
         # Khởi tạo Main Program
-        self.thread = Thread(target = self.MainProgram, daemon = True)
-        self.thread.start()
+        self.mainthread = Thread(target = self.MainProgram, daemon = True)
+        self.mainthread.start()
 
+    # Kiêm tra kết nối 
+    def check_connection(self, client_socket):
+        try:
+            client_socket.connect((self.ip.text(), int(self.port.text())))
+            return True
+        except Exception as e:
+            return False
         
-    
-    # Dừng các thread và giải phóng tài nguyên trước khi thoát ứng dụng ...
-    def ExitApp(self):
-        self.close()
-
     # Thread đổi ảnh _________________________________________________________________________________________________
     def MainProgram(self):
         # Khởi tạo kết nối
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_socket.connect(server_address)
         
-        with client_socket:
-            # self.start = Thread(target = lambda: self.ChangeImage(client_socket), daemon = True)
-            # self.start.start()
-           
-            self.thread_keyboard = Thread(target = lambda: self.putkeyboard(client_socket), daemon = True)
-            self.thread_keyboard.start()
+        if(self.check_connection(client_socket)):
+            with client_socket:     
+                self.thread_keyboard = Thread(target = lambda: self.putkeyboard(client_socket), daemon = True)
+                self.thread_keyboard.start()
 
-            self.thread_mouse = Thread(target = lambda: self.putkeymouse(client_socket), daemon = True)         
-            self.thread_mouse.start()
+                self.thread_mouse = Thread(target = lambda: self.putkeymouse(client_socket), daemon = True)         
+                self.thread_mouse.start()
 
-            try:
-                while True:
-                    img_bytes = client_socket.recv(9999999)
-                    self.pixmap.loadFromData(img_bytes)
-                    self.label2.setPixmap(self.pixmap)
-                    self.label2.setScaledContents(True)
-                    self.label2.setAlignment(Qt.AlignCenter)
-                    self.label2.setFixedSize(1920, 1080)
-            except:
-                client_socket.close()
+                try:
+                    while True:
+                        img_bytes = client_socket.recv(9999999)
+                        self.pixmap.loadFromData(img_bytes)
+                        self.label2.setPixmap(self.pixmap)
+                        self.label2.setScaledContents(True)
+                        self.label2.setAlignment(Qt.AlignCenter)
+                        self.label2.setFixedSize(1920, 1080)       
+                except:
+                    client_socket.close()
+        else:
+            self.newWindow.close()
+            self.ip.clear()
+            self.ip.setStyleSheet("font-size: 30px")
+            self.ip.setPlaceholderText(" Wrong IP or PORT")
+
+        
 
 
     # Thread gửi kí tự _______________________________________________________________________________________________
@@ -114,8 +121,8 @@ class Dekstop(QMainWindow):
         on_release = True
         while on_release:
             with keyboard.Listener(
-                on_press =lambda key: self.keyPressed(key, client_socket),
-                on_release =lambda key: self.keyReleased(key, client_socket)
+                on_press = lambda key: self.keyPressed(key, client_socket),
+                on_release = lambda key: self.keyReleased(key, client_socket)
             ) as listener:
                 listener.join()
     
@@ -131,7 +138,7 @@ class Dekstop(QMainWindow):
         keyName = self.getKeyName(key)
         message = f"{'keyboard'},{keyName},{'on_press'}"
         client_socket.send(message.encode('utf-8'))
-        time.sleep(0.1)
+        time.sleep(0.3)
 
         
     def keyReleased(self, key,client_socket):
@@ -140,7 +147,7 @@ class Dekstop(QMainWindow):
         client_socket.send(message.encode('utf-8'))
         if key == keyboard.Key.esc:
             return False
-        time.sleep(0.05)
+        time.sleep(0.3)
 
    
 
@@ -158,8 +165,8 @@ class Dekstop(QMainWindow):
         th = "on_move"
         message = f"{'mouse'},{th},{x},{y},{'_'},{'_'}"
         client_socket.send(message.encode('utf-8'))
-        time.sleep(0.2)
-
+        time.sleep(0.3)
+                                                                                                                                                                                                                
         
 
     def on_click(self, x, y, button, pressed, client_socket):
@@ -176,7 +183,7 @@ class Dekstop(QMainWindow):
             message = f"{'mouse'},{th},{x},{y},{action},{'middle'}"
 
         client_socket.send(message.encode('utf-8'))
-        time.sleep(0.1)
+        time.sleep(0.3)
 
 
 
@@ -185,7 +192,7 @@ class Dekstop(QMainWindow):
         th = "on_roll"
         message = f"{'mouse'},{th},{dx},{dy},{'_'},{'_'}"
         client_socket.send(message.encode('utf-8'))
-        time.sleep(0.2)
+        time.sleep(0.3)
 
 
 
@@ -196,7 +203,7 @@ if __name__ == '__main__':
     sys.exit(app.exec())
     
 # app = QApplication(sys.argv): Khởi tạo ứng dụng PyQt.
-#ex = Dekstop(): Tạo một đối tượng của class Dekstop.
-#ex.show(): Hiển thị cửa sổ ứng dụng.
-#sys.exit(app.exec()): Chạy vòng lặp sự kiện của PyQt.
+# ex = Dekstop(): Tạo một đối tượng của class Dekstop.
+# ex.show(): Hiển thị cửa sổ ứng dụng.
+# sys.exit(app.exec()): Chạy vòng lặp sự kiện của PyQt.
 # Ghi rõ các kiểu dữ liệu khi truyền sang server
