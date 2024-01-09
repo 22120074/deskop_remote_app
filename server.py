@@ -16,7 +16,7 @@ from queue import Queue
 
 
 print("[SERVER]: STARTED")
-server_address = ('127.0.0.1', 12345)
+server_address = ('25.57.1.139', 12345)
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)                
 sock.bind(server_address) # Server  
 sock.listen(5)
@@ -48,7 +48,8 @@ class Dekstop(QMainWindow):
                     elif data.startswith("mouse"):
                         key, mouse_case, x, y, action, button  = data.split(',')
                         self.Mouse_solving(mouse_case, x, y, action, button)
-        except:
+        except Exception as e:
+            print(e)
             print("Queue Error")
 
     def Mouse_solving(self, mouse_case, x, y, action, button):
@@ -99,7 +100,8 @@ class Dekstop(QMainWindow):
                 self.output_thread = Thread(target = lambda: self.ChangeImage(conn), daemon = True)
                 self.output_thread.start()  
                 # Luồng nhận data từ Queue
-                self.input_thread = Thread(target = lambda: self.Queue_solving(self.queue_, conn), daemon = True)                   
+                self.input_thread = Thread(target = lambda: self.Queue_solving(self.queue_, conn), daemon = True)    
+                self.input_thread.start()  
                 try:
                     while(True):
                         data_nhận = conn.recv(99999)
