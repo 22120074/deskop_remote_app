@@ -11,12 +11,13 @@ import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QLabel, QPushButton, QAction, QMessageBox
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import QRect, Qt, QThread, pyqtSignal
+import time
 
 
 print("[SERVER]: STARTED")
-server_address = ('25.12.20.192', 12345)
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock.bind(server_address) # Server
+server_address = ('192.168.8.184', 12345)
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)                
+sock.bind(server_address) # Server  
 sock.listen(5)
 
 # Deskop Show
@@ -26,6 +27,7 @@ class Dekstop(QMainWindow):
         self.initUI()
 
     def ChangeImage(self, conn):
+        time.sleep(0.1)
         try:
             while True:
                 img = ImageGrab.grab()
@@ -45,17 +47,20 @@ class Dekstop(QMainWindow):
                         pyautogui.mouseDown(button = button)
                 elif action.startswith("Released"):
                     pyautogui.mouseUp(button = button)
-            elif mouse_case.startswith("on_scroll"):
-                pyautogui.scroll(int(y))
+            elif mouse_case.startswith("on_roll"):
+                pyautogui.scroll(int(y) * 100)
         except:
             print("Mouse Error")
 
-    def Character_solving(self, charc, action):
+    def Character_solving(self, charc, action, conn):
         try:
             if action.startswith("on_press"):
                 if charc.startswith("Key"):
                     _, charc = charc.split('.')
+                    if(charc == "esc"):
+                        conn.close()
                 pyautogui.keyDown(charc)
+
             elif action.startswith("on_release"):
                 if charc.startswith("Key"):
                     _, charc = charc.split('.')
@@ -68,6 +73,7 @@ class Dekstop(QMainWindow):
         self.MainProgram.start()
     
     def Main_Program(self):
+        
         while True:
 
             conn, addr = sock.accept()
@@ -79,12 +85,12 @@ class Dekstop(QMainWindow):
                 self.output_thread.start()                     
                 try:
                     while(True):
-                        data_nhận = conn.recv(9999)
+                        data_nhận = conn.recv(99999)
                         data = data_nhận.decode('utf-8')
-                        print(data)
+                        # print(data)
                         if data.startswith("keyboard"):
                             key, char, action = data.split(',')
-                            self.Character_solving(char, action)
+                            self.Character_solving(char, action, conn)
 
                         elif data.startswith("mouse"):
                             key, mouse_case, x, y, action, button  = data.split(',')
