@@ -49,6 +49,9 @@ class Dekstop(QMainWindow):
                         if message.startswith("mouse"):
                             key, mouse_case, x, y, action, button  = message.split(',')
                             self.Mouse_solving(mouse_case, x, y, action, button)
+                        elif message.startswith("keyboard"):
+                            key, charc, action = message.split(',')
+                            self.Character_solving(charc, action, conn)
         except Exception as e:
             print(e)
             print("Queue Error")
@@ -107,7 +110,7 @@ class Dekstop(QMainWindow):
                     while(True):
                         data_nhận = conn.recv(99999)
                         data = data_nhận.decode('utf-8')
-                        print(data)
+                        # print(data)
                         self.queue_.put(data)
                 except Exception as e:
                     print(e)
