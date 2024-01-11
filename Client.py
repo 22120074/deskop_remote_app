@@ -135,10 +135,7 @@ class Dekstop(QMainWindow):
 
     def keyPressed(self, key,client_socket):
         keyName = self.getKeyName(key)
-<<<<<<< HEAD
-=======
         # print(keyName)
->>>>>>> 43c924412acfb31ac3efb165c25f811187b1ff0b
         message = f"{'keyboard'},{keyName},{'on_press'} "
         client_socket.send(message.encode('utf-8'))
         time.sleep(0.05)
@@ -146,10 +143,7 @@ class Dekstop(QMainWindow):
         
     def keyReleased(self, key,client_socket):
         keyName = self.getKeyName(key)
-<<<<<<< HEAD
-=======
         # AAA print(keyName)
->>>>>>> 43c924412acfb31ac3efb165c25f811187b1ff0b
         message = f"{'keyboard'},{keyName},{'on_release'} "
         client_socket.send(message.encode('utf-8'))
         if key == keyboard.Key.esc:

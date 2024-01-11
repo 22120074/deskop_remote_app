@@ -46,20 +46,9 @@ class Dekstop(QMainWindow):
                 for message in messages:
                     if message:
                         print("Processing data:", message)
-<<<<<<< HEAD
                         # if message.startswith("mouse"):
                         key, mouse_case, x, y, action, button  = message.split(',')
                         self.Mouse_solving(mouse_case, x, y, action, button)
-                      
-                           
-=======
-                        if message.startswith("mouse"):
-                            key, mouse_case, x, y, action, button  = message.split(',')
-                            self.Mouse_solving(mouse_case, x, y, action, button)
-                        elif message.startswith("keyboard"):
-                            key, charc, action = message.split(',')
-                            self.Character_solving(charc, action, conn)
->>>>>>> 43c924412acfb31ac3efb165c25f811187b1ff0b
         except Exception as e:
             print(e)
             print("Queue Error")
@@ -139,17 +128,12 @@ class Dekstop(QMainWindow):
                     while(True):
                         data_nhận = conn.recv(99999)
                         data = data_nhận.decode('utf-8')
-<<<<<<< HEAD
                         #print(data)
                         if data.startswith("keyboard"):
                             self.queue1.put(data)
                            
                         elif data.startswith("mouse"):
                             self.queue_.put(data)
-=======
-                        # print(data)
-                        self.queue_.put(data)
->>>>>>> 43c924412acfb31ac3efb165c25f811187b1ff0b
                 except Exception as e:
                     print(e)
                     print(f"Connection with {addr} closed")              
