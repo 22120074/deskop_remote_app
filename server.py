@@ -16,7 +16,7 @@ from queue import Queue
 
 
 print("[SERVER]: STARTED")
-server_address = ('172.16.26.138', 12345)
+server_address = ('192.168.0.79', 1234)
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)                
 sock.bind(server_address) # Server  
 sock.listen(5)
@@ -37,7 +37,7 @@ class Dekstop(QMainWindow):
         except:
             conn.close()
 
-    def Queue_solving(self, queue_, conn):
+    def Queue_solving(self, queue_):
         try:
             print("Queue Started")
             while True:
@@ -46,12 +46,31 @@ class Dekstop(QMainWindow):
                 for message in messages:
                     if message:
                         print("Processing data:", message)
-                        if message.startswith("mouse"):
-                            key, mouse_case, x, y, action, button  = message.split(',')
-                            self.Mouse_solving(mouse_case, x, y, action, button)
+                        # if message.startswith("mouse"):
+                        key, mouse_case, x, y, action, button  = message.split(',')
+                        self.Mouse_solving(mouse_case, x, y, action, button)
+                      
+                           
         except Exception as e:
             print(e)
             print("Queue Error")
+
+
+    def Queue1_solving(self, queue1, conn):
+        try:
+            print("Queue Started")
+            while True:
+                data = queue1.get()
+                messages = data.split()  # Split messages based on a delimiter
+                for message in messages:
+                    if message:
+                        print("Processing data:", message)
+                        key, charc, action = data.split(',')
+                        self.Character_solving(charc, action, conn)
+        except Exception as e:
+            print(e)
+            print("Queue Error")
+
 
     def Mouse_solving(self, mouse_case, x, y, action, button):
         try:
@@ -91,7 +110,7 @@ class Dekstop(QMainWindow):
     def Main_Program(self):
         # Khởi tạo Queue để xử lí dữ liệu từ Client
         self.queue_ = Queue()
-
+        self.queue1 =Queue()
         while True:
             conn, addr = sock.accept()
             with conn:
@@ -101,14 +120,22 @@ class Dekstop(QMainWindow):
                 self.output_thread = Thread(target = lambda: self.ChangeImage(conn), daemon = True)
                 self.output_thread.start()  
                 # Luồng nhận data từ Queue
-                self.input_thread = Thread(target = lambda: self.Queue_solving(self.queue_, conn), daemon = True)    
+                self.input_thread = Thread(target = lambda: self.Queue_solving(self.queue_), daemon = True)    
                 self.input_thread.start()  
+
+                self.input_threadboard = Thread(target = lambda: self.Queue1_solving(self.queue1, conn), daemon = True)    
+                self.input_threadboard.start()  
+               
                 try:
                     while(True):
                         data_nhận = conn.recv(99999)
                         data = data_nhận.decode('utf-8')
-                        print(data)
-                        self.queue_.put(data)
+                        #print(data)
+                        if data.startswith("keyboard"):
+                            self.queue1.put(data)
+                           
+                        elif data.startswith("mouse"):
+                            self.queue_.put(data)
                 except Exception as e:
                     print(e)
                     print(f"Connection with {addr} closed")              
@@ -118,4 +145,3 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = Dekstop()
     sys.exit(app.exec())
-    

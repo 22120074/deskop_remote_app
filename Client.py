@@ -134,14 +134,14 @@ class Dekstop(QMainWindow):
 
     def keyPressed(self, key,client_socket):
         keyName = self.getKeyName(key)
-        message = f"{'keyboard'},{keyName},{'on_press'}"
+        message = f"{'keyboard'},{keyName},{'on_press'} "
         client_socket.send(message.encode('utf-8'))
         time.sleep(0.3)
 
         
     def keyReleased(self, key,client_socket):
         keyName = self.getKeyName(key)
-        message = f"{'keyboard'},{keyName},{'on_release'}"
+        message = f"{'keyboard'},{keyName},{'on_release'} "
         client_socket.send(message.encode('utf-8'))
         if key == keyboard.Key.esc:
             return False
@@ -163,7 +163,7 @@ class Dekstop(QMainWindow):
         th = "on_move"
         message = f"{'mouse'},{th},{x},{y},{'_'},{'_'} "
         client_socket.send(message.encode('utf-8'))
-        # time.sleep(0.2)
+        time.sleep(0.05)
         
                                                                                                                                                                                                                 
         
@@ -173,13 +173,13 @@ class Dekstop(QMainWindow):
         action = 'Pressed' if pressed else 'Released'
         
         if button == Button.right:
-            message = f"{'mouse'},{th},{x},{y},{action},{'right'}" 
+            message = f"{'mouse'},{th},{x},{y},{action},{'right'} " 
 
         if button == Button.left:
-            message = f"{'mouse'},{th},{x},{y},{action},{'left'}" 
+            message = f"{'mouse'},{th},{x},{y},{action},{'left'} " 
 
         if button == Button.middle:
-            message = f"{'mouse'},{th},{x},{y},{action},{'middle'}"
+            message = f"{'mouse'},{th},{x},{y},{action},{'middle'} "
 
         client_socket.send(message.encode('utf-8'))
         time.sleep(0.3)
