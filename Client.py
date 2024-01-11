@@ -88,10 +88,11 @@ class Dekstop(QMainWindow):
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         
         if(self.check_connection(client_socket)):
-            with client_socket:     
+            with client_socket:
+                # Thread gửi phím     
                 self.thread_keyboard = Thread(target = lambda: self.putkeyboard(client_socket), daemon = True)
                 self.thread_keyboard.start()
-
+                # Thread gửi chuột
                 self.thread_mouse = Thread(target = lambda: self.putkeymouse(client_socket), daemon = True)         
                 self.thread_mouse.start()
 
@@ -109,7 +110,7 @@ class Dekstop(QMainWindow):
             self.newWindow.close()
             self.ip.clear()
             self.ip.setStyleSheet("font-size: 30px")
-            self.ip.setPlaceholderText(" Wrong IP or PORT")
+            self.ip.setPlaceholderText("Wrong IP or PORT")
 
         
 
@@ -134,18 +135,26 @@ class Dekstop(QMainWindow):
 
     def keyPressed(self, key,client_socket):
         keyName = self.getKeyName(key)
+<<<<<<< HEAD
+=======
+        # print(keyName)
+>>>>>>> 43c924412acfb31ac3efb165c25f811187b1ff0b
         message = f"{'keyboard'},{keyName},{'on_press'} "
         client_socket.send(message.encode('utf-8'))
-        time.sleep(0.3)
+        time.sleep(0.05)
 
         
     def keyReleased(self, key,client_socket):
         keyName = self.getKeyName(key)
+<<<<<<< HEAD
+=======
+        # AAA print(keyName)
+>>>>>>> 43c924412acfb31ac3efb165c25f811187b1ff0b
         message = f"{'keyboard'},{keyName},{'on_release'} "
         client_socket.send(message.encode('utf-8'))
         if key == keyboard.Key.esc:
             return False
-        time.sleep(0.3)
+        time.sleep(0.05)
 
    
 
@@ -182,7 +191,8 @@ class Dekstop(QMainWindow):
             message = f"{'mouse'},{th},{x},{y},{action},{'middle'} "
 
         client_socket.send(message.encode('utf-8'))
-        time.sleep(0.3)
+        time.sleep(0.05)
+
 
 
 
@@ -191,7 +201,7 @@ class Dekstop(QMainWindow):
         th = "on_roll"
         message = f"{'mouse'},{th},{dx},{dy},{'_'},{'_'} "
         client_socket.send(message.encode('utf-8'))
-        time.sleep(0.3)
+        time.sleep(0.05)
 
 
 
