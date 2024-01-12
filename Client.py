@@ -19,6 +19,7 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import QRect, Qt, pyqtSlot
 from PyQt5.QtNetwork import QTcpSocket
 
+import struct
 class Dekstop(QMainWindow):
     def __init__(self): # def __init__(self):: Hàm khởi tạo của class Dekstop.
         super().__init__()
@@ -98,8 +99,13 @@ class Dekstop(QMainWindow):
 
                 try:
                     while True:
-                        img_bytes = client_socket.recv(9999999)
-                        self.pixmap.loadFromData(img_bytes)
+                        # img_bytes = client_socket.recv(9999999)
+                        img_size = struct.unpack('<l', self.recvall(client_socket, 4))[0]
+
+                        img_data = self.recvall(client_socket, img_size)
+
+                        self.pixmap.loadFromData(img_data)
+
                         self.label2.setPixmap(self.pixmap)
                         self.label2.setScaledContents(True)
                         self.label2.setAlignment(Qt.AlignCenter)
@@ -112,7 +118,16 @@ class Dekstop(QMainWindow):
             self.ip.setStyleSheet("font-size: 30px")
             self.ip.setPlaceholderText("Wrong IP or PORT")
 
-        
+
+    def recvall(self, sock, n):
+        data = bytearray()
+        while len(data) < n:
+            packet = sock.recv(n-len(data))
+            if not packet:
+                return None
+            data.extend(packet)
+        return data
+    
 
 
     # Thread gửi kí tự _______________________________________________________________________________________________
@@ -137,18 +152,18 @@ class Dekstop(QMainWindow):
         keyName = self.getKeyName(key)
         # print(keyName)
         message = f"{'keyboard'},{keyName},{'on_press'} "
-        client_socket.send(message.encode('utf-8'))
-        time.sleep(0.05)
+        client_socket.send(message.encode('ascii'))
+        time.sleep(0.1)
 
         
     def keyReleased(self, key,client_socket):
         keyName = self.getKeyName(key)
         # AAA print(keyName)
         message = f"{'keyboard'},{keyName},{'on_release'} "
-        client_socket.send(message.encode('utf-8'))
+        client_socket.send(message.encode('ascii'))
         if key == keyboard.Key.esc:
             return False
-        time.sleep(0.05)
+        time.sleep(0.1)
 
    
 
@@ -166,7 +181,7 @@ class Dekstop(QMainWindow):
         th = "on_move"
         message = f"{'mouse'},{th},{x},{y},{'_'},{'_'} "
         client_socket.send(message.encode('utf-8'))
-        time.sleep(0.05)
+        time.sleep(0.1)
         
                                                                                                                                                                                                                 
         
@@ -195,7 +210,7 @@ class Dekstop(QMainWindow):
         th = "on_roll"
         message = f"{'mouse'},{th},{dx},{dy},{'_'},{'_'} "
         client_socket.send(message.encode('utf-8'))
-        time.sleep(0.05)
+        time.sleep(0.1)
 
 
 
