@@ -3,6 +3,7 @@ from os import getlogin
 from PIL import Image, ImageGrab #Import thư viện ImageGrab từ Pillow để chụp ảnh màn hình.
 import io
 from io import BytesIO
+import cv2
 import numpy as np
 from random import randint
 import pyautogui
@@ -27,16 +28,34 @@ class Dekstop(QMainWindow):
         super().__init__()
         self.initUI()
 
+    # def ChangeImage(self, conn):
+    #     try:
+    #         while True:
+    #             img = ImageGrab.grab()
+    #             img_bytes = io.BytesIO()
+    #             img.save(img_bytes, format='PNG', quality=50)
+    #             conn.send(img_bytes.getvalue())
+    #     except:
+    #         conn.close()
     def ChangeImage(self, conn):
         try:
+            old_img = None
             while True:
                 img = ImageGrab.grab()
-                img_bytes = io.BytesIO()
-                img.save(img_bytes, format='PNG', quality=50)
-                conn.send(img_bytes.getvalue())
+                img_np = np.array(img)
+
+                if old_img is not None:
+                    delta = cv2.absdiff(old_img, img_np)
+                    img_bytes = io.BytesIO()
+                    Image.fromarray(delta).save(img_bytes, format='PNG')
+                    conn.send(img_bytes.getvalue())
+                else: #tấm ảnh đầu tiên
+                    img_bytes = io.BytesIO()
+                    Image.fromarray(img_np).save(img_bytes, format='PNG')
+                    conn.send(img_bytes.getvalue())
+                old_img = img_np
         except:
             conn.close()
-
     def Queue_solving(self, queue_):
         try:
             print("Queue Started")

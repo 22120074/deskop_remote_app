@@ -6,6 +6,7 @@ from pynput.mouse import Button
 # Work with Image
 from PIL import Image, ImageGrab #Import thư viện ImageGrab từ Pillow để chụp ảnh màn hình.
 import zlib #giải nén ảnh
+import cv2
 import io #Import thư viện io để thao tác với dữ liệu nhị phân.
 import numpy as np #Import thư viện numpy để làm việc với mảng nhiều chiều.
 from random import randint #Import hàm randint để tạo số ngẫu nhiên.
@@ -97,15 +98,37 @@ class Dekstop(QMainWindow):
                 self.thread_mouse = Thread(target = lambda: self.putkeymouse(client_socket), daemon = True)         
                 self.thread_mouse.start()
 
+                # try:
+                #     while True:
+                #         img_bytes = client_socket.recv(9999999)
+                #         #img_bytes = self.decompress_image(img_bytes)
+                #         self.pixmap.loadFromData(img_bytes)
+                #         self.label2.setPixmap(self.pixmap)
+                #         self.label2.setScaledContents(True)
+                #         self.label2.setAlignment(Qt.AlignCenter)
+                #         self.label2.setFixedSize(1920, 1080)       
                 try:
+                    old_img = None
                     while True:
-                        img_bytes = client_socket.recv(9999999)
-                        img_bytes = self.decompress_image(img_bytes)
-                        self.pixmap.loadFromData(img_bytes)
+                        img_bytes = client_socket.recv(999999)
+                        delta = Image.open(io.BytesIO(img_bytes))
+                        delta_np = np.array(delta)
+
+                        if old_img is not None:
+                            updated_img = cv2.add(old_img, delta_np)
+                            self.pixmap.loadFromData(updated_img.tobytes())
+                        else:
+                            self.pixmap.loadFromData(img_bytes)
+
                         self.label2.setPixmap(self.pixmap)
                         self.label2.setScaledContents(True)
                         self.label2.setAlignment(Qt.AlignCenter)
-                        self.label2.setFixedSize(1920, 1080)       
+                        self.label2.setFixedSize(1920, 1080)
+
+                        if old_img is None:
+                            old_img = delta_np
+                        else:
+                            old_img = updated_img
                 except:
                     client_socket.close()
         else:
@@ -113,15 +136,6 @@ class Dekstop(QMainWindow):
             self.ip.clear()
             self.ip.setStyleSheet("font-size: 30px")
             self.ip.setPlaceholderText("Wrong IP or PORT")
-
-    def decompress_image(compressed_img_bytes):
-        try:
-            decompressed_data = zlib.decompress(compressed_img_bytes)
-            return decompressed_data
-        except zlib.error as e:
-            print("Decompression error:", e)
-            return None
-
 
     # Thread gửi kí tự _______________________________________________________________________________________________
     def putkeyboard(self, client_socket):
