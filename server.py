@@ -6,6 +6,7 @@ from io import BytesIO
 import numpy as np
 from random import randint
 import pyautogui
+import pynput
 from threading import Thread
 import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QLabel, QPushButton, QAction, QMessageBox
@@ -13,10 +14,10 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import QRect, Qt, QThread, pyqtSignal
 import time
 from queue import Queue
-
+import struct
 
 print("[SERVER]: STARTED")
-server_address = ('192.168.0.79', 1234)
+server_address = ('192.168.2.112', 1234)
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)                
 sock.bind(server_address) # Server  
 sock.listen(5)
@@ -33,10 +34,15 @@ class Dekstop(QMainWindow):
                 img = ImageGrab.grab()
                 img_bytes = io.BytesIO()
                 img.save(img_bytes, format='PNG')
-                conn.send(img_bytes.getvalue())
-        except:
-            conn.close()
+                img_data = img_bytes.getvalue()
 
+                # Send the size of the image first
+                conn.send(struct.pack('<L', len(img_data)))
+
+                # Then send the image data
+                conn.send(img_data)
+        except:
+            conn.close()        
     def Queue_solving(self, queue_):
         try:
             print("Queue Started")
@@ -108,7 +114,7 @@ class Dekstop(QMainWindow):
     def Main_Program(self):
         # Khởi tạo Queue để xử lí dữ liệu từ Client
         self.queue_ = Queue()
-        self.queue1 =Queue()
+        self.queue1 = Queue()
         while True:
             conn, addr = sock.accept()
             with conn:
@@ -123,11 +129,12 @@ class Dekstop(QMainWindow):
 
                 self.input_threadboard = Thread(target = lambda: self.Queue1_solving(self.queue1, conn), daemon = True)    
                 self.input_threadboard.start()  
-               
+              
+              
                 try:
                     while(True):
                         data_nhận = conn.recv(99999)
-                        data = data_nhận.decode('utf-8')
+                        data = data_nhận.decode('ascii')
                         #print(data)
                         if data.startswith("keyboard"):
                             self.queue1.put(data)
