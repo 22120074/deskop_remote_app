@@ -4,7 +4,8 @@ import socket
 from pynput import mouse, keyboard
 from pynput.mouse import Button
 # Work with Image
-from PIL import ImageGrab #Import thư viện ImageGrab từ Pillow để chụp ảnh màn hình.
+from PIL import Image, ImageGrab #Import thư viện ImageGrab từ Pillow để chụp ảnh màn hình.
+import zlib #giải nén ảnh
 import io #Import thư viện io để thao tác với dữ liệu nhị phân.
 import numpy as np #Import thư viện numpy để làm việc với mảng nhiều chiều.
 from random import randint #Import hàm randint để tạo số ngẫu nhiên.
@@ -99,6 +100,7 @@ class Dekstop(QMainWindow):
                 try:
                     while True:
                         img_bytes = client_socket.recv(9999999)
+                        img_bytes = self.decompress_image(img_bytes)
                         self.pixmap.loadFromData(img_bytes)
                         self.label2.setPixmap(self.pixmap)
                         self.label2.setScaledContents(True)
@@ -112,7 +114,13 @@ class Dekstop(QMainWindow):
             self.ip.setStyleSheet("font-size: 30px")
             self.ip.setPlaceholderText("Wrong IP or PORT")
 
-        
+    def decompress_image(compressed_img_bytes):
+        try:
+            decompressed_data = zlib.decompress(compressed_img_bytes)
+            return decompressed_data
+        except zlib.error as e:
+            print("Decompression error:", e)
+            return None
 
 
     # Thread gửi kí tự _______________________________________________________________________________________________
@@ -186,11 +194,6 @@ class Dekstop(QMainWindow):
 
         client_socket.send(message.encode('utf-8'))
         time.sleep(0.05)
-
-
-
-
-
     def on_scroll(self, dx, dy, client_socket):
         th = "on_roll"
         message = f"{'mouse'},{th},{dx},{dy},{'_'},{'_'} "

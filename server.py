@@ -32,7 +32,7 @@ class Dekstop(QMainWindow):
             while True:
                 img = ImageGrab.grab()
                 img_bytes = io.BytesIO()
-                img.save(img_bytes, format='PNG')
+                img.save(img_bytes, format='PNG', quality=50)
                 conn.send(img_bytes.getvalue())
         except:
             conn.close()
@@ -131,7 +131,6 @@ class Dekstop(QMainWindow):
                         #print(data)
                         if data.startswith("keyboard"):
                             self.queue1.put(data)
-                           
                         elif data.startswith("mouse"):
                             self.queue_.put(data)
                 except Exception as e:
