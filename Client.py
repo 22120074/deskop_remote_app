@@ -4,9 +4,7 @@ import socket
 from pynput import mouse, keyboard
 from pynput.mouse import Button
 # Work with Image
-from PIL import Image, ImageGrab #Import thư viện ImageGrab từ Pillow để chụp ảnh màn hình.
-import zlib #giải nén ảnh
-import cv2
+from PIL import ImageGrab #Import thư viện ImageGrab từ Pillow để chụp ảnh màn hình.
 import io #Import thư viện io để thao tác với dữ liệu nhị phân.
 import numpy as np #Import thư viện numpy để làm việc với mảng nhiều chiều.
 from random import randint #Import hàm randint để tạo số ngẫu nhiên.
@@ -16,7 +14,7 @@ import threading
 from threading import Thread #Import class Thread để tạo và quản lý các thread.
 # PyQt5
 import sys
-from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QLabel, QPushButton, QAction, QMessageBox, QLineEdit,  QVBoxLayout, QDialog
+from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QLabel, QPushButton, QAction, QMessageBox, QLineEdit,  QVBoxLayout, QDialog, QFileDialog
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import QRect, Qt, pyqtSlot
 from PyQt5.QtNetwork import QTcpSocket
@@ -29,13 +27,19 @@ class Dekstop(QMainWindow):
     def initUI(self): # def initUI(self):: Hàm tạo giao diện người dùng của ứng dụng.
         # Khởi tạo pixmap
         self.pixmap = QPixmap()
+
         # Khởi tạo Dialog mới để hiển thị hình ảnh
         self.newWindow = QDialog()
+
         # Khởi tạo label mới để đăng nhập
         self.label = QLabel(self)
-        # Khởi tạo label mới để hiển thị hình ảnh
+
+        # Khởi tạo label2 mới để hiển thị hình ảnh
         self.label2 = QLabel(parent = self.newWindow)
 
+        
+
+        #
         self.label.setPixmap(self.pixmap)
         self.label.resize(self.width(), self.height())
         self.setGeometry(QRect(pyautogui.size()[0] // 4 + 170, pyautogui.size()[1] // 4, 600, 200))
@@ -61,8 +65,8 @@ class Dekstop(QMainWindow):
         self.port.setStyleSheet("font-size: 30px")
         self.port.setPlaceholderText("PORT")
 
-    def StartThread(self): #def StartThread(self):: Hàm khởi động thread khi nút "Start Demo" được nhấn.
-        
+    def StartThread(self): #def StartThread(self):: Hàm được khởi động thread khi nút "Start Demo" được nhấn.
+        # Khởi tạo label 2_____________________________________________________________________________
         self.label2.setPixmap(self.pixmap)
         self.label2.resize(1920, 1080)
         self.label2.setFixedSize(self.width(), self.height())
@@ -72,7 +76,28 @@ class Dekstop(QMainWindow):
         self.newWindow.setWindowTitle("[Server] Remote Desktop: " + str(randint(99999, 999999)))
         self.newWindow.show()
 
-        # Khởi tạo Main Program
+        # Khởi tạo label 3_____________________________________________________________________________
+
+        self.window2 = QDialog()
+        self.container = QWidget(self.window2)
+        self.window2.setWindowTitle("[Server] Chụp ảnh và Thao Tác File: " + str(randint(99999, 999999)))
+
+        self.label3 = QLabel(self.container)  # Make label3 a child of container
+        self.label3.setPixmap(self.pixmap)
+        
+        self.CatchImage = QPushButton(self.window2) # Nút chụp ảnh
+        self.CatchImage.move(150, 100)
+        self.CatchImage.resize(300, 90)
+        self.CatchImage.setStyleSheet("font-size: 25px")
+        self.CatchImage.setText("Chụp ảnh")
+        self.Image_catched = None
+        self.CatchImage.clicked.connect(self.Catchimage)
+
+        self.window2.setGeometry(QRect(0, -5, 600, 200))
+        self.window2.setFixedSize(600, 200)
+        self.window2.show()
+        
+        # Khởi tạo Main Program_________________________________________________________________________
         self.mainthread = Thread(target = self.MainProgram, daemon = True)
         self.mainthread.start()
 
@@ -98,37 +123,15 @@ class Dekstop(QMainWindow):
                 self.thread_mouse = Thread(target = lambda: self.putkeymouse(client_socket), daemon = True)         
                 self.thread_mouse.start()
 
-                # try:
-                #     while True:
-                #         img_bytes = client_socket.recv(9999999)
-                #         #img_bytes = self.decompress_image(img_bytes)
-                #         self.pixmap.loadFromData(img_bytes)
-                #         self.label2.setPixmap(self.pixmap)
-                #         self.label2.setScaledContents(True)
-                #         self.label2.setAlignment(Qt.AlignCenter)
-                #         self.label2.setFixedSize(1920, 1080)       
                 try:
-                    old_img = None
                     while True:
-                        img_bytes = client_socket.recv(999999)
-                        delta = Image.open(io.BytesIO(img_bytes))
-                        delta_np = np.array(delta)
-
-                        if old_img is not None:
-                            updated_img = cv2.add(old_img, delta_np)
-                            self.pixmap.loadFromData(updated_img.tobytes())
-                        else:
-                            self.pixmap.loadFromData(img_bytes)
-
+                        img_bytes = client_socket.recv(9999999)
+                        self.Image_catched = img_bytes
+                        self.pixmap.loadFromData(img_bytes)
                         self.label2.setPixmap(self.pixmap)
                         self.label2.setScaledContents(True)
                         self.label2.setAlignment(Qt.AlignCenter)
-                        self.label2.setFixedSize(1920, 1080)
-
-                        if old_img is None:
-                            old_img = delta_np
-                        else:
-                            old_img = updated_img
+                        self.label2.setFixedSize(1920, 1080)       
                 except:
                     client_socket.close()
         else:
@@ -137,6 +140,14 @@ class Dekstop(QMainWindow):
             self.ip.setStyleSheet("font-size: 30px")
             self.ip.setPlaceholderText("Wrong IP or PORT")
 
+    # Chụp ảnh _________________________________________________________________________________________________
+    def Catchimage(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        filename, _ = QFileDialog.getSaveFileName(self,"QFileDialog.getSaveFileName()", "","All Files (*);;JPEG (*.jpg *.jpeg);;PNG (*.png)", options=options)
+        if filename:
+            with open(filename, 'wb') as f:
+                f.write(self.Image_catched)
     # Thread gửi kí tự _______________________________________________________________________________________________
     def putkeyboard(self, client_socket):
         on_release = True
@@ -208,6 +219,11 @@ class Dekstop(QMainWindow):
 
         client_socket.send(message.encode('utf-8'))
         time.sleep(0.05)
+
+
+
+
+
     def on_scroll(self, dx, dy, client_socket):
         th = "on_roll"
         message = f"{'mouse'},{th},{dx},{dy},{'_'},{'_'} "
