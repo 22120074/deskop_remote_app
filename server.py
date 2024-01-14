@@ -15,9 +15,9 @@ from PyQt5.QtCore import QRect, Qt, QThread, pyqtSignal
 import time
 from queue import Queue
 import struct
-
+import pickle
 print("[SERVER]: STARTED")
-server_address = ('192.168.2.112', 1234)
+server_address = ('localhost', 1234)
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)                
 sock.bind(server_address) # Server  
 sock.listen(5)
@@ -48,13 +48,14 @@ class Dekstop(QMainWindow):
             print("Queue Started")
             while True:
                 data = queue_.get()
-                messages = data.split()  # Split messages based on a delimiter
-                for message in messages:
-                    if message:
-                        print("Processing data:", message)
-                        # if message.startswith("mouse"):
-                        key, mouse_case, x, y, action, button  = message.split(',')
-                        self.Mouse_solving(mouse_case, x, y, action, button)
+                # messages = data.split()  # Split messages based on a delimiter
+                # for message in messages:
+                #     if message:
+                #         print("Processing data:", message)
+                #         # if message.startswith("mouse"):
+                #         key, mouse_case, x, y, action, button  = message.split(',')
+                #         self.Mouse_solving(mouse_case, x, y, action, button)
+                self.Mouse_solving(data)
         except Exception as e:
             print(e)
             print("Queue Error")
@@ -76,18 +77,32 @@ class Dekstop(QMainWindow):
             print("Queue Error")
 
 
-    def Mouse_solving(self, mouse_case, x, y, action, button):
+    # def Mouse_solving(self, mouse_case, x, y, action, button):
+    #     try:
+    #         if mouse_case.startswith("on_move"):
+    #             pyautogui.moveTo(int(x), int(y))
+    #         elif mouse_case.startswith("on_click"):
+    #             if action.startswith("Pressed"):
+    #                 if button in ('left', 'right', 'middle'):
+    #                     pyautogui.mouseDown(button = button)
+    #             elif action.startswith("Released"):
+    #                 pyautogui.mouseUp(button = button)
+    #         elif mouse_case.startswith("on_roll"):
+    #             pyautogui.scroll(int(y) * 100)
+    #     except:
+    #         print("Mouse Error")
+    def Mouse_solving(self, data):
         try:
-            if mouse_case.startswith("on_move"):
-                pyautogui.moveTo(int(x), int(y))
-            elif mouse_case.startswith("on_click"):
-                if action.startswith("Pressed"):
-                    if button in ('left', 'right', 'middle'):
-                        pyautogui.mouseDown(button = button)
-                elif action.startswith("Released"):
-                    pyautogui.mouseUp(button = button)
-            elif mouse_case.startswith("on_roll"):
-                pyautogui.scroll(int(y) * 100)
+            if data['event_type'] == 'on_move':
+                pyautogui.moveTo(int(data['x']), int(data['y']))
+            elif data['event_type'] == 'on_click':
+                if data['action'] == 'Pressed':
+                    if data['button'] in ('left', 'right', 'middle'):
+                        pyautogui.mouseDown(button = data['button'])
+                elif data['action'] == 'Released':
+                    pyautogui.mouseUp(button = data['button'])
+            elif data['event_type'] == 'on_roll':
+                pyautogui.scroll(int(data['y']) * 100)
         except:
             print("Mouse Error")
 
@@ -133,13 +148,13 @@ class Dekstop(QMainWindow):
               
                 try:
                     while(True):
-                        data_nhận = conn.recv(99999)
-                        data = data_nhận.decode('ascii')
-                        #print(data)
-                        if data.startswith("keyboard"):
+                        data_received = conn.recv(99999)
+                        data = pickle.loads(data_received)
+                        print(data)
+                        if data['type']=='keyboard':
                             self.queue1.put(data)
-                           
-                        elif data.startswith("mouse"):
+                            continue
+                        if data['type']=='mouse':
                             self.queue_.put(data)
                 except Exception as e:
                     print(e)
