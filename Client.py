@@ -1,18 +1,14 @@
-# Socket
 import time
 import socket
 from pynput import mouse, keyboard
 from pynput.mouse import Button
-# Work with Image
-from PIL import ImageGrab #Import thư viện ImageGrab từ Pillow để chụp ảnh màn hình.
-import io #Import thư viện io để thao tác với dữ liệu nhị phân.
-import numpy as np #Import thư viện numpy để làm việc với mảng nhiều chiều.
-from random import randint #Import hàm randint để tạo số ngẫu nhiên.
-import pyautogui #Import thư viện pyautogui để làm việc với điều khiển màn hình.
-# Thread
+from PIL import ImageGrab
+import io 
+import numpy as np 
+from random import randint 
+import pyautogui 
 import threading
-from threading import Thread #Import class Thread để tạo và quản lý các thread.
-# PyQt5
+from threading import Thread
 import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QLabel, QPushButton, QAction, QMessageBox, QLineEdit,  QVBoxLayout, QDialog, QFileDialog
 from PyQt5.QtGui import QPixmap
@@ -20,6 +16,7 @@ from PyQt5.QtCore import QRect, Qt, pyqtSlot
 from PyQt5.QtNetwork import QTcpSocket
 import pickle
 import struct
+
 class Dekstop(QMainWindow):
     def __init__(self): # def __init__(self):: Hàm khởi tạo của class Dekstop.
         super().__init__()
@@ -38,9 +35,6 @@ class Dekstop(QMainWindow):
         # Khởi tạo label2 mới để hiển thị hình ảnh
         self.label2 = QLabel(parent = self.newWindow)
 
-        
-
-        #
         self.label.setPixmap(self.pixmap)
         self.label.resize(self.width(), self.height())
         self.setGeometry(QRect(pyautogui.size()[0] // 4 + 170, pyautogui.size()[1] // 4, 600, 200))
@@ -102,7 +96,6 @@ class Dekstop(QMainWindow):
         self.mainthread = Thread(target = self.MainProgram, daemon = True)
         self.mainthread.start()
 
-    # Kiêm tra kết nối 
     def check_connection(self, client_socket):
         try:
             client_socket.connect((self.ip.text(), int(self.port.text())))
@@ -110,11 +103,10 @@ class Dekstop(QMainWindow):
         except Exception as e:
             return False
         
-    # Thread đổi ảnh _________________________________________________________________________________________________
+    # Thread truyền ảnh _________________________________________________________________________________________________
     def MainProgram(self):
-        # Khởi tạo kết nối
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        
+
         if(self.check_connection(client_socket)):
             with client_socket:
                 # Thread gửi phím     
@@ -126,13 +118,10 @@ class Dekstop(QMainWindow):
 
                 try:
                     while True:
-                        # img_bytes = client_socket.recv(9999999)
                         img_size = struct.unpack('<l', self.recvall(client_socket, 4))[0]
-
                         img_data = self.recvall(client_socket, img_size)
 
                         self.pixmap.loadFromData(img_data)
-
                         self.label2.setPixmap(self.pixmap)
                         self.label2.setScaledContents(True)
                         self.label2.setAlignment(Qt.AlignCenter)
@@ -154,8 +143,6 @@ class Dekstop(QMainWindow):
                 return None
             data.extend(packet)
         return data
-    
-
 
     # Thread gửi kí tự _______________________________________________________________________________________________
     def putkeyboard(self, client_socket):
@@ -166,16 +153,11 @@ class Dekstop(QMainWindow):
                 on_release = lambda key: self.keyReleased(key, client_socket)
             ) as listener:
                 listener.join()
-    
-        
-    
-
 
     def keyPressed(self, key, client_socket):
         data = {'type': 'keyboard', 'action': 'on_press', 'key_name': key}
         serialized_data = pickle.dumps(data)
         client_socket.send(serialized_data)
-
         
     def keyReleased(self, key,client_socket):
         data = {'type': 'keyboard', 'action': 'on_press', 'key_name': key}
@@ -183,9 +165,6 @@ class Dekstop(QMainWindow):
         client_socket.send(serialized_data)
         if key == keyboard.Key.esc:
             return False
-        
-
-   
 
     # Thread gửi chuột ____________________________________________________________________________________________
     def putkeymouse(self, client_socket):
@@ -201,11 +180,7 @@ class Dekstop(QMainWindow):
         data = {'type':'mouse', 'event_type': 'on_move', 'x': x, 'y': y}
         serialized_data = pickle.dumps(data)
         client_socket.send(serialized_data)
-        time.sleep(0.02)
-        
-        
-                                                                                                                                                                                                                
-        
+        time.sleep(0.02)        
 
     def on_click(self, x, y, button, pressed, client_socket):
         action = 'Pressed' if pressed else 'Released'
@@ -227,9 +202,6 @@ class Dekstop(QMainWindow):
         data = {'type':'mouse', 'event_type': 'on_scroll', 'x': x, 'y': y,'dx':dx,'dy':dy}
         serialized_data = pickle.dumps(data)
         client_socket.send(serialized_data)
-        
-
-
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
