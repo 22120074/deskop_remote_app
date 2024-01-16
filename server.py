@@ -7,6 +7,10 @@ import numpy as np
 from random import randint
 import pyautogui
 import pynput
+from pynput.keyboard import Controller as KeyboardController, Key
+from pynput.mouse import Controller as MouseController, Button
+import traceback
+
 from threading import Thread
 import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QLabel, QPushButton, QAction, QMessageBox
@@ -16,11 +20,16 @@ import time
 from queue import Queue
 import struct
 import pickle
+
+
 print("[SERVER]: STARTED")
-server_address = ('localhost', 1234)
+
+server_address = ('192.168.0.103', 1234)
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)                
 sock.bind(server_address) # Server  
 sock.listen(5)
+keyboard = KeyboardController()
+mouse = MouseController()
 
 # Deskop Show
 class Dekstop(QMainWindow):
@@ -43,93 +52,51 @@ class Dekstop(QMainWindow):
                 conn.send(img_data)
         except:
             conn.close()        
-    def Queue_solving(self, queue_):
-        try:
-            print("Queue Started")
-            while True:
-                data = queue_.get()
-                # messages = data.split()  # Split messages based on a delimiter
-                # for message in messages:
-                #     if message:
-                #         print("Processing data:", message)
-                #         # if message.startswith("mouse"):
-                #         key, mouse_case, x, y, action, button  = message.split(',')
-                #         self.Mouse_solving(mouse_case, x, y, action, button)
-                self.Mouse_solving(data)
-        except Exception as e:
-            print(e)
-            print("Queue Error")
-
-
-    def Queue1_solving(self, queue1, conn):
-        try:
-            print("Queue Started")
-            while True:
-                data = queue1.get()
-                messages = data.split()  # Split messages based on a delimiter
-                for message in messages:
-                    if message:
-                        print("Processing data:", message)
-                        key, charc, action = data.split(',')
-                        self.Character_solving(charc, action, conn)
-        except Exception as e:
-            print(e)
-            print("Queue Error")
-
-
-    # def Mouse_solving(self, mouse_case, x, y, action, button):
-    #     try:
-    #         if mouse_case.startswith("on_move"):
-    #             pyautogui.moveTo(int(x), int(y))
-    #         elif mouse_case.startswith("on_click"):
-    #             if action.startswith("Pressed"):
-    #                 if button in ('left', 'right', 'middle'):
-    #                     pyautogui.mouseDown(button = button)
-    #             elif action.startswith("Released"):
-    #                 pyautogui.mouseUp(button = button)
-    #         elif mouse_case.startswith("on_roll"):
-    #             pyautogui.scroll(int(y) * 100)
-    #     except:
-    #         print("Mouse Error")
+    
     def Mouse_solving(self, data):
         try:
             if data['event_type'] == 'on_move':
-                pyautogui.moveTo(int(data['x']), int(data['y']))
+                mouse.position = (int(data['x']), int(data['y']))
             elif data['event_type'] == 'on_click':
                 if data['action'] == 'Pressed':
                     if data['button'] in ('left', 'right', 'middle'):
-                        pyautogui.mouseDown(button = data['button'])
+                        mouse.press(getattr(Button, data['button']))
                 elif data['action'] == 'Released':
-                    pyautogui.mouseUp(button = data['button'])
-            elif data['event_type'] == 'on_roll':
-                pyautogui.scroll(int(data['y']) * 100)
-        except:
-            print("Mouse Error")
-
-    def Character_solving(self, charc, action, conn):
+                    mouse.release(getattr(Button, data['button']))
+            elif data['event_type'] == 'on_scroll':
+                mouse.scroll(0, int(data['dy'])*10)
+        except Exception as e:
+            print("Mouse Error: ", e)
+    def Character_solving(self, data, conn):
+        
         try:
-            if action.startswith("on_press"):
-                if charc.startswith("Key"):
-                    _, charc = charc.split('.')
-                    if(charc == "esc"):
-                        conn.close()
-                pyautogui.keyDown(charc)
+            if data['action'] == 'on_press':
+                if data['key_name'].startswith('Key.'):
+                    key = getattr(Key, data['key_name'].split('.')[1])
+                    print('comb: ', data['key_name'])
+                    
+                    keyboard.press(key)
+                else:
+                    print('single: ',data['key_name'])
+                    keyboard.press(data['key_name'])
+            elif data['action'] == 'on_release':
+                if data['key_name'].startswith('Key.'):
+                    key = getattr(Key, data['key_name'].split('.')[1])
+                    print('comb: ',str(key))
+                    keyboard.release(key)
+                else:
+                    print('single: ',data['key_name'])
+                    keyboard.release(data['key_name'])
 
-            elif action.startswith("on_release"):
-                if charc.startswith("Key"):
-                    _, charc = charc.split('.')
-                pyautogui.keyUp(charc)
-        except:
-            print("Keyboard Error")
-
+        except Exception as e:
+            print("Keyboard Error: ", traceback.format_exc())
     def initUI(self):
         self.MainProgram = Thread(target = self.Main_Program, daemon = True)
         self.MainProgram.start()
     
     def Main_Program(self):
         # Khởi tạo Queue để xử lí dữ liệu từ Client
-        self.queue_ = Queue()
-        self.queue1 = Queue()
+       
         while True:
             conn, addr = sock.accept()
             with conn:
@@ -138,26 +105,21 @@ class Dekstop(QMainWindow):
                 # Luồng gửi data ảnh
                 self.output_thread = Thread(target = lambda: self.ChangeImage(conn), daemon = True)
                 self.output_thread.start()  
-                # Luồng nhận data từ Queue
-                self.input_thread = Thread(target = lambda: self.Queue_solving(self.queue_), daemon = True)    
-                self.input_thread.start()  
-
-                self.input_threadboard = Thread(target = lambda: self.Queue1_solving(self.queue1, conn), daemon = True)    
-                self.input_threadboard.start()  
-              
+               
               
                 try:
                     while(True):
-                        data_received = conn.recv(99999)
+                        data_received = conn.recv(1024)
                         data = pickle.loads(data_received)
                         print(data)
                         if data['type']=='keyboard':
-                            self.queue1.put(data)
-                            continue
+                            self.Character_solving(data, conn)
                         if data['type']=='mouse':
-                            self.queue_.put(data)
+                            self.Mouse_solving(data)
+
+                            
                 except Exception as e:
-                    print(e)
+                    print('mainError: ', e)
                     print(f"Connection with {addr} closed")              
         
     

@@ -190,13 +190,13 @@ class Dekstop(QMainWindow):
         action = 'Pressed' if pressed else 'Released'
         
         if button == Button.right:
-            data = {'type':'mouse', 'event_type': 'on_move', 'x': x, 'y': y, 'action': action, 'button': 'right'}
+            data = {'type':'mouse', 'event_type': 'on_click', 'x': x, 'y': y, 'action': action, 'button': 'right'}
 
         if button == Button.left:
-            data = {'type':'mouse', 'event_type': 'on_move', 'x': x, 'y': y, 'action': action, 'button': 'left'}
+            data = {'type':'mouse', 'event_type': 'on_click', 'x': x, 'y': y, 'action': action, 'button': 'left'}
 
         if button == Button.middle:
-            data = {'type':'mouse', 'event_type': 'on_move', 'x': x, 'y': y, 'action': action, 'button': 'middle'}
+            data = {'type':'mouse', 'event_type': 'on_click', 'x': x, 'y': y, 'action': action, 'button': 'middle'}
 
         serialized_data = pickle.dumps(data)
         client_socket.send(serialized_data)
