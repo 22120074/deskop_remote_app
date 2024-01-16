@@ -96,12 +96,12 @@ class Dekstop(QMainWindow):
         self.SendFile.setText("Gửi file")
         self.SendFile.clicked.connect(self.File_to_server)
 
-        self.ReFile = QPushButton(self.window2) # Nút nhận file
-        self.ReFile.move(70, 55)
-        self.ReFile.resize(460, 45)
-        self.ReFile.setStyleSheet("font-size: 25px")
-        self.ReFile.setText("Nhận file")
-        self.ReFile.clicked.connect(self.ReFile_From_server)
+        # self.ReFile = QPushButton(self.window2) # Nút nhận file
+        # self.ReFile.move(70, 55)
+        # self.ReFile.resize(460, 45)
+        # self.ReFile.setStyleSheet("font-size: 25px")
+        # self.ReFile.setText("Nhận file")
+        # self.ReFile.clicked.connect(self.ReFile_From_server)
 
         self.window2.setGeometry(QRect(0, -5, 600, 200))
         self.window2.setFixedSize(600, 200)
@@ -176,9 +176,11 @@ class Dekstop(QMainWindow):
     # Chụp ảnh_________________________________________________________________________________________________
     def Catchimage(self):
         filename = time.strftime("%Y%m%d-%H%M%S.jpg")
-        filepath = os.path.join(os.getcwd(), filename)
+        directory = os.path.join(os.getcwd(), "Screenshots")
+        os.makedirs(directory, exist_ok=True)
+        filepath = os.path.join(directory, filename)
         with open(filepath, 'wb') as f:
-            f.write(self.Image_catched)                
+            f.write(self.Image_catched)             
     # Thread gửi kí tự _______________________________________________________________________________________________
     def putkeyboard(self, client_socket):
         on_release = True
