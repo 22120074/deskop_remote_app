@@ -3,6 +3,7 @@ from os import getlogin
 from PIL import Image, ImageGrab #Import thư viện ImageGrab từ Pillow để chụp ảnh màn hình.
 import io
 from io import BytesIO
+import cv2
 import numpy as np
 from random import randint
 import pyautogui
@@ -37,11 +38,9 @@ class Dekstop(QMainWindow):
         super().__init__()
         self.initUI()
 
-    def ctrl(letter):
-        return chr(ord(letter.upper()) - 64)
-
     def ChangeImage(self, conn):
         try:
+            old_img = None
             while True:
                 img = ImageGrab.grab()
                 img_bytes = io.BytesIO()
