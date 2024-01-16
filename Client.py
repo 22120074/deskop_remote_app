@@ -3,7 +3,8 @@ import socket
 from pynput import mouse, keyboard
 from pynput.mouse import Button
 from PIL import ImageGrab
-import io 
+import io
+import os
 import numpy as np 
 from random import randint 
 import pyautogui 
@@ -174,13 +175,10 @@ class Dekstop(QMainWindow):
 
     # Chụp ảnh_________________________________________________________________________________________________
     def Catchimage(self):
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-        filename, _ = QFileDialog.getSaveFileName(self,"QFileDialog.getSaveFileName()", "","All Files (*);;JPEG (*.jpg *.jpeg);;PNG (*.png)", options=options)
-        if filename:
-            with open(filename, 'wb') as f:
-                f.write(self.Image_catched)
-                
+        filename = time.strftime("%Y%m%d-%H%M%S.jpg")
+        filepath = os.path.join(os.getcwd(), filename)
+        with open(filepath, 'wb') as f:
+            f.write(self.Image_catched)                
     # Thread gửi kí tự _______________________________________________________________________________________________
     def putkeyboard(self, client_socket):
         on_release = True

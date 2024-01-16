@@ -1,5 +1,5 @@
 import socket
-from os import getlogin
+import os
 from PIL import Image, ImageGrab
 import io
 from io import BytesIO
@@ -48,8 +48,7 @@ class Dekstop(QMainWindow):
                 # Then send the image data
                 conn.send(img_data)
         except:
-            conn.close()        
-    
+            conn.close()       
     def Mouse_solving(self, data):
         try:
             if data['event_type'] == 'on_move':
