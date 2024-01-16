@@ -37,6 +37,9 @@ class Dekstop(QMainWindow):
         super().__init__()
         self.initUI()
 
+    def ctrl(letter):
+        return chr(ord(letter.upper()) - 64)
+
     def ChangeImage(self, conn):
         try:
             while True:
@@ -71,22 +74,9 @@ class Dekstop(QMainWindow):
         
         try:
             if data['action'] == 'on_press':
-                if data['key_name'].startswith('Key.'):
-                    key = getattr(Key, data['key_name'].split('.')[1])
-                    print('comb: ', data['key_name'])
-                    
-                    keyboard.press(key)
-                else:
-                    print('single: ',data['key_name'])
-                    keyboard.press(data['key_name'])
+                keyboard.press(data['key_name'])
             elif data['action'] == 'on_release':
-                if data['key_name'].startswith('Key.'):
-                    key = getattr(Key, data['key_name'].split('.')[1])
-                    print('comb: ',str(key))
-                    keyboard.release(key)
-                else:
-                    print('single: ',data['key_name'])
-                    keyboard.release(data['key_name'])
+                keyboard.release(data['key_name'])
 
         except Exception as e:
             print("Keyboard Error: ", traceback.format_exc())
@@ -127,3 +117,5 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = Dekstop()
     sys.exit(app.exec())
+
+
