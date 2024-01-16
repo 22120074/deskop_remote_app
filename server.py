@@ -65,7 +65,6 @@ class Dekstop(QMainWindow):
         except Exception as e:
             print("Mouse Error: ", e)
     def Character_solving(self, data, conn):
-        
         try:
             if data['action'] == 'on_press':
                 keyboard.press(data['key_name'])
@@ -74,6 +73,14 @@ class Dekstop(QMainWindow):
 
         except Exception as e:
             print("Keyboard Error: ", traceback.format_exc())
+    
+    def Receive_file(self, data): # Nhận file từ client_______________________________________________________________________________________
+        filename = data['file_name']
+        file_content = data['file_content']
+        filepath = os.path.join("D:\\", filename)
+        with open(filepath, 'wb') as f:
+            f.write(file_content)
+
     def initUI(self):
         self.MainProgram = Thread(target = self.Main_Program, daemon = True)
         self.MainProgram.start()
@@ -92,10 +99,12 @@ class Dekstop(QMainWindow):
                         data_received = conn.recv(1024)
                         data = pickle.loads(data_received)
                         print(data)
-                        if data['type']=='keyboard':
+                        if data['type'] == 'keyboard':
                             self.Character_solving(data, conn)
-                        if data['type']=='mouse':
+                        if data['type'] == 'mouse':
                             self.Mouse_solving(data)
+                        if data['type'] == 'file_re':
+                            self.Receive_file(data)
                 except Exception as e:
                     print('mainError: ', e)
                     print(f"Connection with {addr} closed")              
