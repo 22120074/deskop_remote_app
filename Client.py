@@ -131,39 +131,32 @@ class Dekstop(QMainWindow):
 
 
     # Thread gửi kí tự _______________________________________________________________________________________________
-    # def putkeyboard(self, client_socket):
-    #     on_release = True
-    #     while on_release:
-    #         with keyboard.Listener(
-    #             on_press = lambda key: self.keyPressed(key, client_socket),
-    #             on_release = lambda key: self.keyReleased(key, client_socket)
-    #         ) as listener:
-    #             listener.join()
+    def putkeyboard(self, client_socket):
+        on_release = True
+        while on_release:
+            with keyboard.Listener(
+                on_press = lambda key: self.keyPressed(key, client_socket),
+                on_release = lambda key: self.keyReleased(key, client_socket)
+            ) as listener:
+                listener.join()
     
         
-    # def getKeyName(self, key):
-    #     if isinstance(key, keyboard.KeyCode):
-    #         return key.char
-    #     else:
-    #         return str(key)
+    
 
 
-    # def keyPressed(self, key,client_socket):
-    #     keyName = self.getKeyName(key)
-    #     # print(keyName)
-    #     message = f"{'keyboard'},{keyName},{'on_press'} "
-    #     client_socket.send(message.encode('utf-8'))
-    #     time.sleep(0.1)
+    def keyPressed(self, key, client_socket):
+        data = {'type': 'keyboard', 'action': 'on_press', 'key_name': key}
+        serialized_data = pickle.dumps(data)
+        client_socket.send(serialized_data)
 
         
-    # def keyReleased(self, key,client_socket):
-    #     keyName = self.getKeyName(key)
-    #     # AAA print(keyName)
-    #     message = f"{'keyboard'},{keyName},{'on_release'} "
-    #     client_socket.send(message.encode('utf-8'))
-    #     if key == keyboard.Key.esc:
-    #         return False
-    #     time.sleep(0.1)
+    def keyReleased(self, key,client_socket):
+        data = {'type': 'keyboard', 'action': 'on_press', 'key_name': key}
+        serialized_data = pickle.dumps(data)
+        client_socket.send(serialized_data)
+        if key == keyboard.Key.esc:
+            return False
+        
 
    
 
@@ -171,18 +164,19 @@ class Dekstop(QMainWindow):
     def putkeymouse(self, client_socket):
         while True:
             with mouse.Listener(
-                on_move = lambda x, y: self.on_move(x, y, client_socket),                                         #on_move: Được gọi khi chuột di chuyển.
-                on_click = lambda x, y, button, pressed: self.on_click(x, y, button, pressed, client_socket),     #on_click: Được gọi khi một nút chuột được nhấn hoặc nhả.
-                on_scroll = lambda x, y: self.on_scroll(x, y, client_socket)                            #on_scroll: Được gọi khi chuột được cuộn.
+                on_move = lambda x, y: self.on_move(x, y, client_socket),    
+                on_scroll = lambda x,y ,dx, dy: self.on_scroll(x,y,dx, dy, client_socket),                                                                           #on_move: Được gọi khi chuột di chuyển.
+                on_click = lambda x, y, button, pressed: self.on_click(x, y, button, pressed, client_socket)  
             ) as listener:
                 listener.join()
         
     def on_move(self, x, y, client_socket):
         data = {'type':'mouse', 'event_type': 'on_move', 'x': x, 'y': y}
-        # message = f"{'mouse'},{th},{x},{y},{'_'},{'_'} "
         serialized_data = pickle.dumps(data)
         client_socket.send(serialized_data)
-        time.sleep(0.1)       
+        time.sleep(0.02)
+        
+        
                                                                                                                                                                                                                 
         
 
@@ -190,29 +184,23 @@ class Dekstop(QMainWindow):
         action = 'Pressed' if pressed else 'Released'
         
         if button == Button.right:
-            data = {'type':'mouse', 'event_type': 'on_move', 'x': x, 'y': y, 'action': action, 'button': 'right'}
+            data = {'type':'mouse', 'event_type': 'on_click', 'x': x, 'y': y, 'action': action, 'button': 'right'}
 
         if button == Button.left:
-            data = {'type':'mouse', 'event_type': 'on_move', 'x': x, 'y': y, 'action': action, 'button': 'left'}
+            data = {'type':'mouse', 'event_type': 'on_click', 'x': x, 'y': y, 'action': action, 'button': 'left'}
 
         if button == Button.middle:
-            data = {'type':'mouse', 'event_type': 'on_move', 'x': x, 'y': y, 'action': action, 'button': 'middle'}
+            data = {'type':'mouse', 'event_type': 'on_click', 'x': x, 'y': y, 'action': action, 'button': 'middle'}
 
         serialized_data = pickle.dumps(data)
         client_socket.send(serialized_data)
-        time.sleep(0.05)
 
-
-
-
-
-    def on_scroll(self, x, y, client_socket):
-        # th = "on_roll"
-        # message = f"{'mouse'},{th},{dx},{dy},{'_'},{'_'} "
-        data = {'type':'mouse', 'event_type': 'on_roll', 'x': x, 'y': y}
+    def on_scroll(self,x,y, dx, dy, client_socket):
+      
+        data = {'type':'mouse', 'event_type': 'on_scroll', 'x': x, 'y': y,'dx':dx,'dy':dy}
         serialized_data = pickle.dumps(data)
         client_socket.send(serialized_data)
-        time.sleep(0.1)
+        
 
 
 
@@ -222,8 +210,4 @@ if __name__ == '__main__':
     ex.show()
     sys.exit(app.exec())
     
-# app = QApplication(sys.argv): Khởi tạo ứng dụng PyQt.
-# ex = Dekstop(): Tạo một đối tượng của class Dekstop.
-# ex.show(): Hiển thị cửa sổ ứng dụng.
-# sys.exit(app.exec()): Chạy vòng lặp sự kiện của PyQt.
-# Ghi rõ các kiểu dữ liệu khi truyền sang server
+
