@@ -35,7 +35,6 @@ class Dekstop(QMainWindow):
 
     def ChangeImage(self, conn):
         try:
-            old_img = None
             while True:
                 img = ImageGrab.grab()
                 img_bytes = io.BytesIO()
@@ -69,16 +68,18 @@ class Dekstop(QMainWindow):
                 keyboard.press(data['key_name'])
             elif data['action'] == 'on_release':
                 keyboard.release(data['key_name'])
-
         except Exception as e:
-            print("Keyboard Error: ", traceback.format_exc())
+            print("Keyboard Error: ", e)
     
     def Receive_file(self, data): # Nhận file từ client_______________________________________________________________________________________
-        filename = data['file_name']
-        file_content = data['file_content']
-        filepath = os.path.join("D:\\", filename)
-        with open(filepath, 'wb') as f:
-            f.write(file_content)
+        try:
+            filename = data['file_name']
+            file_content = data['file_content']
+            filepath = os.path.join("D:\\", filename)
+            with open(filepath, 'wb') as f:
+                f.write(file_content)
+        except Exception as e:
+            print("Receive file Error: ", e)
 
     def initUI(self):
         self.MainProgram = Thread(target = self.Main_Program, daemon = True)
@@ -95,7 +96,7 @@ class Dekstop(QMainWindow):
                 self.output_thread.start()  
                 try:
                     while(True):
-                        data_received = conn.recv(1024)
+                        data_received = conn.recv(999999)
                         data = pickle.loads(data_received)
                         print(data)
                         if data['type'] == 'keyboard':

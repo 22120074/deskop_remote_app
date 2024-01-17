@@ -162,25 +162,30 @@ class Dekstop(QMainWindow):
     
     # Gửi file qua server_____________________________________________________________________________________________
     def File_to_server(self):
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-        filename, _ = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "","All Files (*);;JPEG (*.jpg *.jpeg);;PNG (*.png)", options=options)
-        if filename:
-            with open(filename, 'rb') as f:
-                file_content = f.read()
-                file_name = os.path.basename(filename)
-                data = {'type':'file_re', 'file_name': file_name, 'file_content': file_content}
-                serialized_data = pickle.dumps(data)
-                self.client_socket.send(serialized_data)
-
+        try:    
+            options = QFileDialog.Options()
+            options |= QFileDialog.DontUseNativeDialog
+            filename, _ = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "","All Files (*);;JPEG (*.jpg *.jpeg);;PNG (*.png)", options=options)
+            if filename:
+                with open(filename, 'rb') as f:
+                    file_content = f.read()
+                    file_name = os.path.basename(filename)
+                    data = {'type':'file_re', 'file_name': file_name, 'file_content': file_content}
+                    serialized_data = pickle.dumps(data)
+                    self.client_socket.send(serialized_data)
+        except Exception as e:
+            print("Send file Error: ", e)
     # Chụp ảnh_________________________________________________________________________________________________
     def Catchimage(self):
-        filename = time.strftime("%Y%m%d-%H%M%S.jpg")
-        directory = os.path.join(os.getcwd(), "Screenshots")
-        os.makedirs(directory, exist_ok=True)
-        filepath = os.path.join(directory, filename)
-        with open(filepath, 'wb') as f:
-            f.write(self.Image_catched)             
+        try:
+            filename = time.strftime("%Y%m%d-%H%M%S.jpg")
+            directory = os.path.join(os.getcwd(), "Screenshots")
+            os.makedirs(directory, exist_ok=True)
+            filepath = os.path.join(directory, filename)
+            with open(filepath, 'wb') as f:
+                f.write(self.Image_catched)
+        except Exception as e:
+            print("Catch image Error: ", e)             
     # Thread gửi kí tự _______________________________________________________________________________________________
     def putkeyboard(self, client_socket):
         on_release = True
@@ -214,7 +219,7 @@ class Dekstop(QMainWindow):
                 listener.join()
         
     def on_move(self, x, y, client_socket):
-        data = {'type':'mouse', 'event_type': 'on_move', 'x': x, 'y': y}
+        data = {'type':     'mouse', 'event_type': 'on_move', 'x': x, 'y': y}
         serialized_data = pickle.dumps(data)
         client_socket.send(serialized_data)
         time.sleep(0.02)        
@@ -223,20 +228,20 @@ class Dekstop(QMainWindow):
         action = 'Pressed' if pressed else 'Released'
         
         if button == Button.right:
-            data = {'type':'mouse', 'event_type': 'on_click', 'x': x, 'y': y, 'action': action, 'button': 'right'}
+            data = {'type': 'mouse', 'event_type': 'on_click', 'x': x, 'y': y, 'action': action, 'button': 'right'}
 
         if button == Button.left:
-            data = {'type':'mouse', 'event_type': 'on_click', 'x': x, 'y': y, 'action': action, 'button': 'left'}
+            data = {'type': 'mouse', 'event_type': 'on_click', 'x': x, 'y': y, 'action': action, 'button': 'left'}
 
         if button == Button.middle:
-            data = {'type':'mouse', 'event_type': 'on_click', 'x': x, 'y': y, 'action': action, 'button': 'middle'}
+            data = {'type': 'mouse', 'event_type': 'on_click', 'x': x, 'y': y, 'action': action, 'button': 'middle'}
 
         serialized_data = pickle.dumps(data)
         client_socket.send(serialized_data)
 
     def on_scroll(self,x,y, dx, dy, client_socket):
       
-        data = {'type':'mouse', 'event_type': 'on_scroll', 'x': x, 'y': y,'dx':dx,'dy':dy}
+        data = {'type': 'mouse', 'event_type': 'on_scroll', 'x': x, 'y': y, 'dx': dx, 'dy': dy}
         serialized_data = pickle.dumps(data)
         client_socket.send(serialized_data)
 
