@@ -95,7 +95,7 @@ class Dekstop(QMainWindow):
                 self.output_thread.start()  
                 try:
                     while(True):
-                        data_received = conn.recv(1024)
+                        data_received = conn.recv(999999)
                         data = pickle.loads(data_received)
                         print(data)
                         if data['type'] == 'keyboard':
