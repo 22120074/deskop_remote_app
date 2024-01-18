@@ -20,10 +20,9 @@ import struct
 import os
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTreeWidget, QTreeWidgetItem, QVBoxLayout
 
-class RemoteDesktopApp(QMainWindow):
+class Client(QMainWindow):
     def __init__(self):
         super().__init__()
-        
 
         self.setWindowTitle("Remote Desktop")
         self.setGeometry(100, 100, 800, 600)
@@ -32,15 +31,27 @@ class RemoteDesktopApp(QMainWindow):
         self.central_widget.setColumnCount(1)
         self.central_widget.setHeaderLabels(["File System"])
 
-        layout = QVBoxLayout(self)
+        # Create a new QWidget instance
+        new_window = QWidget()
+
+        # Create a QVBoxLayout instance
+        layout = QVBoxLayout()
+
+        # Add the tree widget to the layout
         layout.addWidget(self.central_widget)
 
-        # Hiển thị cây thư mục của máy chủ và máy khách
+        # Set the layout of the new window
+        new_window.setLayout(layout)
+
+        # Show the new window
+        new_window.show()
+
+        # Display the file system tree
         self.display_file_system("C:/", "Server")
         self.display_file_system("D:/", "Server")
         self.display_file_system("C:/", "Client")
         self.display_file_system("D:/", "Client")
-
+    
     def display_file_system(self, root_path, location):
         root_item = QTreeWidgetItem(self.central_widget, [f"{location} - {root_path}"])
 
@@ -133,12 +144,12 @@ class Dekstop(QMainWindow):
             self.Image_catched = None
             self.CatchImage.clicked.connect(self.Catch_Image)
 
-            # self.SendFile = QPushButton(self.window2) # Nút gửi file
-            # self.SendFile.move(70, 5)
-            # self.SendFile.resize(460, 45)
-            # self.SendFile.setStyleSheet("font-size: 25px")
-            # self.SendFile.setText("Gửi file")
-            # self.SendFile.clicked.connect(self.start_send_receive)
+            self.SendFile = QPushButton(self.window2) # Nút gửi file
+            self.SendFile.move(70, 5)
+            self.SendFile.resize(460, 45)
+            self.SendFile.setStyleSheet("font-size: 25px")
+            self.SendFile.setText("Gửi file")
+            self.SendFile.clicked.connect(self.send_receive)
 
             # self.ReFile = QPushButton(self.window2) # Nút nhận file
             # self.ReFile.move(70, 55)
@@ -150,50 +161,14 @@ class Dekstop(QMainWindow):
             self.window2.setGeometry(QRect(0, -5, 800, 600))
             self.window2.setFixedSize(800, 600)
             self.window2.show()
-
-            #window3
-            self.central_widget = QTreeWidget(self)
-            self.central_widget.setColumnCount(1)
-            self.central_widget.setHeaderLabels(["File System"])
-
-            tree_Window = QWidget()
-            tree_Layout = QVBoxLayout()
-            tree_Layout.addWidget(self.central_widget)
-            tree_Window.setLayout(tree_Layout)
-            tree_Window.show()
-        
-            # Hiển thị cây thư mục của máy chủ và máy khách
-            self.display_file_system("C:/", "Server")
-            self.display_file_system("D:/", "Server")
-            self.display_file_system("C:/", "Client")
-            self.display_file_system("D:/", "Client")
-
-
+            
             # Khởi tạo Main Program_________________________________________________________________________
             self.mainthread = Thread(target = self.MainProgram, daemon = True)
             self.mainthread.start()
         except Exception as e:
             print('layout Error: ', e)
-    
-    def display_file_system(self, root_path, location):
-        root_item = QTreeWidgetItem(self.central_widget, [f"{location} - {root_path}"])
-
-        for dirpath, dirnames, filenames in os.walk(root_path):
-            for dirname in dirnames:
-                dir_item = QTreeWidgetItem(root_item, [dirname])
-                self.populate_tree(dir_item, os.path.join(dirpath, dirname))
-
-            for filename in filenames:
-                file_item = QTreeWidgetItem(root_item, [filename])
-
-    def populate_tree(self, parent_item, parent_path):
-        for dirpath, dirnames, filenames in os.walk(parent_path):
-            for dirname in dirnames:
-                dir_item = QTreeWidgetItem(parent_item, [dirname])
-                self.populate_tree(dir_item, os.path.join(dirpath, dirname))
-
-            for filename in filenames:
-                file_item = QTreeWidgetItem(parent_item, [filename])
+    def send_receive(self):
+        self.remote_desktop_app = Client()
 
     def check_connection(self, client_socket):
         try:
