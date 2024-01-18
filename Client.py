@@ -96,12 +96,12 @@ class Dekstop(QMainWindow):
         self.SendFile.setText("Gửi file")
         self.SendFile.clicked.connect(self.File_to_server)
 
-        self.ReFile = QPushButton(self.window2) # Nút nhận file
-        self.ReFile.move(70, 55)
-        self.ReFile.resize(460, 45)
-        self.ReFile.setStyleSheet("font-size: 25px")
-        self.ReFile.setText("Nhận file")
-        self.ReFile.clicked.connect(self.ReFile_From_server)
+        # self.ReFile = QPushButton(self.window2) # Nút nhận file
+        # self.ReFile.move(70, 55)
+        # self.ReFile.resize(460, 45)
+        # self.ReFile.setStyleSheet("font-size: 25px")
+        # self.ReFile.setText("Nhận file")
+        # self.ReFile.clicked.connect(self.ReFile_From_server)
 
         self.window2.setGeometry(QRect(0, -5, 600, 200))
         self.window2.setFixedSize(600, 200)
@@ -162,17 +162,21 @@ class Dekstop(QMainWindow):
     
     # Gửi file qua server_____________________________________________________________________________________________
     def File_to_server(self):
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-        filename = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "", options = options)
-        if filename:
-            with open(filename, 'rb') as f:
-                file_content = f.read()
-                file_name = os.path.basename(filename)
-                data = {'type':'file_re', 'file_name': file_name, 'file_content': file_content}
-                serialized_data = pickle.dumps(data)
-                self.client_socket.send(serialized_data)
+        try:
+            options = QFileDialog.Options()
+            options |= QFileDialog.DontUseNativeDialog
+            filename = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "", options = options)
+            if filename:
+                with open(filename[0], 'rb') as f:
+                    file_content = f.read()
+                    file_name = os.path.basename(filename)
+                    data = {'type':'file_re', 'file_name': file_name, 'file_content': file_content}
+                    serialized_data = pickle.dumps(data)
+                    self.client_socket.send(serialized_data)
+        except Exception as e:
+            print('Send file Error: ', e)
 
+        
     # Chụp ảnh_________________________________________________________________________________________________
     def Catchimage(self):
         filename = time.strftime("%Y%m%d-%H%M%S.jpg")
@@ -195,7 +199,7 @@ class Dekstop(QMainWindow):
         client_socket.send(serialized_data)
         
     def keyReleased(self, key,client_socket):
-        data = {'type': 'keyboard', 'action': 'on_press', 'key_name': key}
+        data = {'type': 'keyboard', 'action': 'on_release', 'key_name': key}
         serialized_data = pickle.dumps(data)
         client_socket.send(serialized_data)
         if key == keyboard.Key.esc:
