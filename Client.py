@@ -176,6 +176,19 @@ class Dekstop(QMainWindow):
         except Exception as e:
             print('Send file Error: ', e)
 
+    def select_and_send_file(self):
+            file_path = filedialog.askopenfilename()
+            if file_path:
+                file_name = os.path.basename(file_path)
+                self.client_socket.sendall(f"file:{file_name}".encode())
+                with open(file_path, 'rb') as file:
+                    while True:
+                        data = file.read(1024)
+                        if not data: 
+                            break
+                        self.client_socket.sendall(data)
+
+                print(f"File '{file_name}' sent successfully.")
         
     # Chụp ảnh_________________________________________________________________________________________________
     def Catchimage(self):
