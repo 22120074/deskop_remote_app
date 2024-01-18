@@ -140,19 +140,6 @@ class Dekstop(QMainWindow):
             # self.SendFile.setText("Gửi file")
             # self.SendFile.clicked.connect(self.start_send_receive)
 
-            
-
-            self.central_widget = QTreeWidget(self)
-            self.central_widget.setColumnCount(1)
-            self.central_widget.setHeaderLabels(["File System"])
-
-        
-            # Hiển thị cây thư mục của máy chủ và máy khách
-            self.display_file_system("C:/", "Server")
-            self.display_file_system("D:/", "Server")
-            self.display_file_system("C:/", "Client")
-            self.display_file_system("D:/", "Client")
-
             # self.ReFile = QPushButton(self.window2) # Nút nhận file
             # self.ReFile.move(70, 55)
             # self.ReFile.resize(460, 45)
@@ -163,7 +150,25 @@ class Dekstop(QMainWindow):
             self.window2.setGeometry(QRect(0, -5, 800, 600))
             self.window2.setFixedSize(800, 600)
             self.window2.show()
-            
+
+            #window3
+            self.central_widget = QTreeWidget(self)
+            self.central_widget.setColumnCount(1)
+            self.central_widget.setHeaderLabels(["File System"])
+
+            tree_Window = QWidget()
+            tree_Layout = QVBoxLayout()
+            tree_Layout.addWidget(self.central_widget)
+            tree_Window.setLayout(tree_Layout)
+            tree_Window.show()
+        
+            # Hiển thị cây thư mục của máy chủ và máy khách
+            self.display_file_system("C:/", "Server")
+            self.display_file_system("D:/", "Server")
+            self.display_file_system("C:/", "Client")
+            self.display_file_system("D:/", "Client")
+
+
             # Khởi tạo Main Program_________________________________________________________________________
             self.mainthread = Thread(target = self.MainProgram, daemon = True)
             self.mainthread.start()

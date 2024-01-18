@@ -59,7 +59,7 @@ class Dekstop(QMainWindow):
                 elif data['action'] == 'Released':
                     mouse.release(getattr(Button, data['button']))
             elif data['event_type'] == 'on_scroll':
-                mouse.scroll(0, int(data['dy'])*10)
+                mouse.scroll(0, int(data['dy']))
         except Exception as e:
             print("Mouse Error: ", e)
     def Character_solving(self, data):
