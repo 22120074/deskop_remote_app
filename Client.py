@@ -164,7 +164,7 @@ class Dekstop(QMainWindow):
     def File_to_server(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        filename, _ = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "","All Files (*);;JPEG (*.jpg *.jpeg);;PNG (*.png)", options=options)
+        filename = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "", options = options)
         if filename:
             with open(filename, 'rb') as f:
                 file_content = f.read()
