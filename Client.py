@@ -17,6 +17,49 @@ from PyQt5.QtCore import QRect, Qt, pyqtSlot
 from PyQt5.QtNetwork import QTcpSocket
 import pickle
 import struct
+import os
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTreeWidget, QTreeWidgetItem, QVBoxLayout
+
+class RemoteDesktopApp(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        
+
+        self.setWindowTitle("Remote Desktop")
+        self.setGeometry(100, 100, 800, 600)
+
+        self.central_widget = QTreeWidget(self)
+        self.central_widget.setColumnCount(1)
+        self.central_widget.setHeaderLabels(["File System"])
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.central_widget)
+
+        # Hiển thị cây thư mục của máy chủ và máy khách
+        self.display_file_system("C:/", "Server")
+        self.display_file_system("D:/", "Server")
+        self.display_file_system("C:/", "Client")
+        self.display_file_system("D:/", "Client")
+
+    def display_file_system(self, root_path, location):
+        root_item = QTreeWidgetItem(self.central_widget, [f"{location} - {root_path}"])
+
+        for dirpath, dirnames, filenames in os.walk(root_path):
+            for dirname in dirnames:
+                dir_item = QTreeWidgetItem(root_item, [dirname])
+                self.populate_tree(dir_item, os.path.join(dirpath, dirname))
+
+            for filename in filenames:
+                file_item = QTreeWidgetItem(root_item, [filename])
+
+    def populate_tree(self, parent_item, parent_path):
+        for dirpath, dirnames, filenames in os.walk(parent_path):
+            for dirname in dirnames:
+                dir_item = QTreeWidgetItem(parent_item, [dirname])
+                self.populate_tree(dir_item, os.path.join(dirpath, dirname))
+
+            for filename in filenames:
+                file_item = QTreeWidgetItem(parent_item, [filename])
 
 class Dekstop(QMainWindow):
     def __init__(self): # def __init__(self):: Hàm khởi tạo của class Dekstop.
@@ -62,54 +105,90 @@ class Dekstop(QMainWindow):
         self.port.setPlaceholderText("PORT")
 
     def StartThread(self): #def StartThread(self):: Hàm được khởi động thread khi nút "Start Demo" được nhấn.
-        # Khởi tạo label 2_____________________________________________________________________________
-        self.label2.setPixmap(self.pixmap)
-        self.label2.resize(1920, 1080)
-        self.label2.setFixedSize(self.width(), self.height())
+        try:    
+            # Khởi tạo label 2_____________________________________________________________________________
+            self.label2.setPixmap(self.pixmap)
+            self.label2.resize(1920, 1080)
+            self.label2.setFixedSize(self.width(), self.height())
+            
+            self.newWindow.setGeometry(QRect(0, -5, 400, 90))
+            self.newWindow.setFixedSize(1920, 1080)
+            self.newWindow.setWindowTitle("[Server] Remote Desktop: " + str(randint(99999, 999999)))
+            self.newWindow.show()
+
+            # Khởi tạo label 3_____________________________________________________________________________
+
+            self.window2 = QDialog()
+            self.container = QWidget(self.window2)
+            self.window2.setWindowTitle("[Server] Chụp ảnh và Thao Tác File: " + str(randint(99999, 999999)))
+
+            self.label3 = QLabel(self.container)
+            self.label3.setPixmap(self.pixmap)
+            
+            self.CatchImage = QPushButton(self.window2) # Nút chụp ảnh
+            self.CatchImage.move(150, 100)
+            self.CatchImage.resize(300, 90)
+            self.CatchImage.setStyleSheet("font-size: 25px")
+            self.CatchImage.setText("Chụp ảnh")
+            self.Image_catched = None
+            self.CatchImage.clicked.connect(self.Catch_Image)
+
+            # self.SendFile = QPushButton(self.window2) # Nút gửi file
+            # self.SendFile.move(70, 5)
+            # self.SendFile.resize(460, 45)
+            # self.SendFile.setStyleSheet("font-size: 25px")
+            # self.SendFile.setText("Gửi file")
+            # self.SendFile.clicked.connect(self.start_send_receive)
+
+            
+
+            self.central_widget = QTreeWidget(self)
+            self.central_widget.setColumnCount(1)
+            self.central_widget.setHeaderLabels(["File System"])
+
         
-        self.newWindow.setGeometry(QRect(0, -5, 400, 90))
-        self.newWindow.setFixedSize(1920, 1080)
-        self.newWindow.setWindowTitle("[Server] Remote Desktop: " + str(randint(99999, 999999)))
-        self.newWindow.show()
+            # Hiển thị cây thư mục của máy chủ và máy khách
+            self.display_file_system("C:/", "Server")
+            self.display_file_system("D:/", "Server")
+            self.display_file_system("C:/", "Client")
+            self.display_file_system("D:/", "Client")
 
-        # Khởi tạo label 3_____________________________________________________________________________
+            # self.ReFile = QPushButton(self.window2) # Nút nhận file
+            # self.ReFile.move(70, 55)
+            # self.ReFile.resize(460, 45)
+            # self.ReFile.setStyleSheet("font-size: 25px")
+            # self.ReFile.setText("Nhận file")
+            # self.ReFile.clicked.connect(self.ReFile_From_server)
 
-        self.window2 = QDialog()
-        self.container = QWidget(self.window2)
-        self.window2.setWindowTitle("[Server] Chụp ảnh và Thao Tác File: " + str(randint(99999, 999999)))
+            self.window2.setGeometry(QRect(0, -5, 800, 600))
+            self.window2.setFixedSize(800, 600)
+            self.window2.show()
+            
+            # Khởi tạo Main Program_________________________________________________________________________
+            self.mainthread = Thread(target = self.MainProgram, daemon = True)
+            self.mainthread.start()
+        except Exception as e:
+            print('layout Error: ', e)
+    
+    def display_file_system(self, root_path, location):
+        root_item = QTreeWidgetItem(self.central_widget, [f"{location} - {root_path}"])
 
-        self.label3 = QLabel(self.container)
-        self.label3.setPixmap(self.pixmap)
-        
-        self.CatchImage = QPushButton(self.window2) # Nút chụp ảnh
-        self.CatchImage.move(150, 100)
-        self.CatchImage.resize(300, 90)
-        self.CatchImage.setStyleSheet("font-size: 25px")
-        self.CatchImage.setText("Chụp ảnh")
-        self.Image_catched = None
-        self.CatchImage.clicked.connect(self.CatchImage)
+        for dirpath, dirnames, filenames in os.walk(root_path):
+            for dirname in dirnames:
+                dir_item = QTreeWidgetItem(root_item, [dirname])
+                self.populate_tree(dir_item, os.path.join(dirpath, dirname))
 
-        # self.SendFile = QPushButton(self.window2) # Nút gửi file
-        # self.SendFile.move(70, 5)
-        # self.SendFile.resize(460, 45)
-        # self.SendFile.setStyleSheet("font-size: 25px")
-        # self.SendFile.setText("Gửi file")
-        # self.SendFile.clicked.connect(self.File_to_server)
+            for filename in filenames:
+                file_item = QTreeWidgetItem(root_item, [filename])
 
-        # self.ReFile = QPushButton(self.window2) # Nút nhận file
-        # self.ReFile.move(70, 55)
-        # self.ReFile.resize(460, 45)
-        # self.ReFile.setStyleSheet("font-size: 25px")
-        # self.ReFile.setText("Nhận file")
-        # self.ReFile.clicked.connect(self.ReFile_From_server)
+    def populate_tree(self, parent_item, parent_path):
+        for dirpath, dirnames, filenames in os.walk(parent_path):
+            for dirname in dirnames:
+                dir_item = QTreeWidgetItem(parent_item, [dirname])
+                self.populate_tree(dir_item, os.path.join(dirpath, dirname))
 
-        self.window2.setGeometry(QRect(0, -5, 600, 200))
-        self.window2.setFixedSize(600, 200)
-        self.window2.show()
-        
-        # Khởi tạo Main Program_________________________________________________________________________
-        self.mainthread = Thread(target = self.MainProgram, daemon = True)
-        self.mainthread.start()
+            for filename in filenames:
+                file_item = QTreeWidgetItem(parent_item, [filename])
 
     def check_connection(self, client_socket):
         try:
@@ -176,7 +255,7 @@ class Dekstop(QMainWindow):
     #     except Exception as e:
     #         print("Send file Error: ", e)
     # Chụp ảnh_________________________________________________________________________________________________
-    def CatchImage(self):
+    def Catch_Image(self):
         try:
             filename = time.strftime("%Y%m%d-%H%M%S.jpg")
             directory = os.path.join(os.getcwd(), "Screenshots")
