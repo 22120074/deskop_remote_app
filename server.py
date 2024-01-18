@@ -17,6 +17,7 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import QRect, Qt, QThread, pyqtSignal
 import struct
 import pickle
+from tkinter import filedialog
 
 print("[SERVER]: STARTED")
 
@@ -73,12 +74,27 @@ class Dekstop(QMainWindow):
         except Exception as e:
             print("Keyboard Error: ", traceback.format_exc())
     
-    def Receive_file(self, data): # Nhận file từ client_______________________________________________________________________________________
-        filename = data['file_name']
-        file_content = data['file_content']
-        filepath = os.path.join("D:\\", filename)
-        with open(filepath, 'wb') as f:
-            f.write(file_content)
+    # def Receive_file(self, data): # Nhận file từ client_______________________________________________________________________________________
+    #     filename = data['file_name']
+    #     file_content = data['file_content']
+    #     filepath = os.path.join("D:\\", filename)
+    #     with open(filepath, 'wb') as f:
+    #         f.write(file_content)
+
+    def receive_file(self, client_socket, file_name):
+        save_path = filedialog.asksaveasfilename(defaultextension=".*", filetypes=[("All Files", ".")],initialfile=file_name)        
+        with open(save_path, 'wb') as file:   
+            while True:
+                try:         
+                    data = client_socket.recv(1024)
+                    if not data:
+                        break
+                    file.write(data)
+                except:
+                    break
+        
+        print(f"File '{file_name}' received and saved at: {save_path}")
+        messagebox.showinfo("File Received", f"File '{file_name}' received and saved at:\n{save_path}")
 
     def initUI(self):
         self.MainProgram = Thread(target = self.Main_Program, daemon = True)
