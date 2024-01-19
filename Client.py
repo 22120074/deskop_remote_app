@@ -162,9 +162,8 @@ class Dekstop(QMainWindow):
 
     
     # Gửi file qua server_____________________________________________________________________________________________
-         
     def File_to_server(self):
-
+       
         file_path, _ = QFileDialog.getOpenFileName()
         if file_path:
             file_name = os.path.basename(file_path)
@@ -194,7 +193,6 @@ class Dekstop(QMainWindow):
                     self.client_socket.sendall(b'')
 
                     print(f"File '{file_name}' sent successfully.")
-
     # Chụp ảnh_________________________________________________________________________________________________
     def Catchimage(self):
         filename = time.strftime("%Y%m%d-%H%M%S.jpg")

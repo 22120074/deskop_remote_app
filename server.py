@@ -75,18 +75,22 @@ class Dekstop(QMainWindow):
             print("Keyboard Error: ", traceback.format_exc())
     
     def Receive_file(self, data):
-        filename = data['file_name']
-        filepath = os.path.join("D:\\", filename)
-        receive_thread = threading.Thread(target=self.receive_file_content, args=(filepath,))
-        receive_thread.start()
+        file_name = data['file_name']
+        save_path = data['save_path']
+        file_size = data['file_size']
 
-    def receive_file_content(self, filepath):
-        with open(filepath, 'wb') as f:
-            while True:
-                file_content = self.client_socket.recv(1024)
-                if not file_content:
+        with open(save_path, 'wb') as file:
+            remaining_size = file_size
+            while remaining_size > 0:
+                chunk = self.recvall(self.client_socket, min(1024, remaining_size))
+                if not chunk:
                     break
-                f.write(file_content)
+                file.write(chunk)
+                remaining_size -= len(chunk)
+
+        print(f"File '{file_name}' received and saved at: {save_path}")
+
+        
     def initUI(self):
         self.MainProgram = Thread(target = self.Main_Program, daemon = True)
         self.MainProgram.start()
