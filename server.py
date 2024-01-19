@@ -70,7 +70,6 @@ class Dekstop(QMainWindow):
             print("Keyboard Error: ", traceback.format_exc())
 
     def recvall(self, sock, n):
-    # Helper function to recv n bytes or return None if EOF is hit
         data = b''
         while len(data) < n:
             packet = sock.recv(n - len(data))
@@ -103,12 +102,11 @@ class Dekstop(QMainWindow):
             with self.conn:
                 print("----------Connected----------")
                 print(f"Connected by {self.addr}")
-                # Luồng gửi data ảnh
                 self.output_thread = Thread(target = lambda: self.ChangeImage(self.conn), daemon = True)
                 self.output_thread.start()  
                 try:
                     while(True):
-                        data_received = conn.recv(999999)
+                        data_received = self.conn.recv(999999)
                         data=pickle.loads(data_received)
                         if data['type'] == 'keyboard':
                             self.Character_solving(data)
