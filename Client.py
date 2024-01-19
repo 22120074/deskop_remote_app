@@ -162,17 +162,24 @@ class Dekstop(QMainWindow):
     
     # Gửi file qua server_____________________________________________________________________________________________
     def File_to_server(self):
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-        filename = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "", options = options)
-        if filename:
-            with open(filename[0], 'rb') as f:
-                file_content = f.read()
-                file_name = os.path.basename(filename)
-                data = {'type':'file_re', 'file_name': file_name, 'file_content': file_content}
+        try:
+            options = QFileDialog.Options()
+            options |= QFileDialog.DontUseNativeDialog
+            filename = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "", options = options)
+            if filename:
+                file_name = os.path.basename(filename[0])
+                data = {'type':'file_re', 'file_name': file_name}
                 serialized_data = pickle.dumps(data)
                 self.client_socket.send(serialized_data)
 
+                with open(filename[0], 'rb') as f:
+                    while True:
+                        file_content = f.read(1024)
+                        if not file_content:
+                            break
+                        self.client_socket.send(file_content)
+        except Exception as e:
+            print('Send file Error: ', e)
     # Chụp ảnh_________________________________________________________________________________________________
     def Catchimage(self):
         filename = time.strftime("%Y%m%d-%H%M%S.jpg")

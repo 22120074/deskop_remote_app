@@ -10,6 +10,7 @@ from pynput.keyboard import Controller as KeyboardController, Key
 from pynput.mouse import Controller as MouseController, Button
 import traceback
 
+import threading
 from threading import Thread
 import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QLabel, QPushButton, QAction, QMessageBox
@@ -73,13 +74,19 @@ class Dekstop(QMainWindow):
         except Exception as e:
             print("Keyboard Error: ", traceback.format_exc())
     
-    def Receive_file(self, data): # Nhận file từ client_______________________________________________________________________________________
+    def Receive_file(self, data):
         filename = data['file_name']
-        file_content = data['file_content']
         filepath = os.path.join("D:\\", filename)
-        with open(filepath, 'wb') as f:
-            f.write(file_content)
+        receive_thread = threading.Thread(target=self.receive_file_content, args=(filepath,))
+        receive_thread.start()
 
+    def receive_file_content(self, filepath):
+        with open(filepath, 'wb') as f:
+            while True:
+                file_content = self.client_socket.recv(1024)
+                if not file_content:
+                    break
+                f.write(file_content)
     def initUI(self):
         self.MainProgram = Thread(target = self.Main_Program, daemon = True)
         self.MainProgram.start()
