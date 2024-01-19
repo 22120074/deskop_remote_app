@@ -21,6 +21,7 @@ import struct
 class Dekstop(QMainWindow):
     def __init__(self): # def __init__(self):: Hàm khởi tạo của class Dekstop.
         super().__init__()
+        self.client_socket = None
         self.initUI()
 
     def initUI(self): # def initUI(self):: Hàm tạo giao diện người dùng của ứng dụng.
@@ -120,21 +121,21 @@ class Dekstop(QMainWindow):
         
     # Thread truyền ảnh _________________________________________________________________________________________________
     def MainProgram(self):
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        if(self.check_connection(client_socket)):
-            with client_socket:
+        if(self.check_connection(self.client_socket)):
+            with self.client_socket:
                 # Thread gửi phím     
-                self.thread_keyboard = Thread(target = lambda: self.putkeyboard(client_socket), daemon = True)
+                self.thread_keyboard = Thread(target = lambda: self.putkeyboard(self.client_socket), daemon = True)
                 self.thread_keyboard.start()
                 # Thread gửi chuột
-                self.thread_mouse = Thread(target = lambda: self.putkeymouse(client_socket), daemon = True)         
+                self.thread_mouse = Thread(target = lambda: self.putkeymouse(self.client_socket), daemon = True)         
                 self.thread_mouse.start()
 
                 try:
                     while True:
-                        img_size = struct.unpack('<l', self.recvall(client_socket, 4))[0]
-                        img_data = self.recvall(client_socket, img_size)
+                        img_size = struct.unpack('<l', self.recvall(self.client_socket, 4))[0]
+                        img_data = self.recvall(self.client_socket, img_size)
                         self.Image_catched = img_data
                         self.pixmap.loadFromData(img_data)
                         self.label2.setPixmap(self.pixmap)
@@ -142,7 +143,7 @@ class Dekstop(QMainWindow):
                         self.label2.setAlignment(Qt.AlignCenter)
                         self.label2.setFixedSize(1920, 1080)       
                 except:
-                    client_socket.close()
+                    self.client_socket.close()
         else:
             self.newWindow.close()
             self.ip.clear()
