@@ -36,17 +36,12 @@ class Dekstop(QMainWindow):
 
     def ChangeImage(self, conn):
         try:
-            old_img = None
             while True:
                 img = ImageGrab.grab()
                 img_bytes = io.BytesIO()
                 img.save(img_bytes, format='PNG')
                 img_data = img_bytes.getvalue()
-
-                # Send the size of the image first
                 conn.send(struct.pack('<L', len(img_data)))
-
-                # Then send the image data
                 conn.send(img_data)
         except:
             conn.close()       
@@ -64,15 +59,16 @@ class Dekstop(QMainWindow):
                 mouse.scroll(0, int(data['dy'])*10)
         except Exception as e:
             print("Mouse Error: ", e)
-    def Character_solving(self, data, conn):
+
+    def Character_solving(self, data):
         try:
             if data['action'] == 'on_press':
                 keyboard.press(data['key_name'])
             elif data['action'] == 'on_release':
                 keyboard.release(data['key_name'])
-
         except Exception as e:
             print("Keyboard Error: ", traceback.format_exc())
+
     def recvall(self, sock, n):
     # Helper function to recv n bytes or return None if EOF is hit
         data = b''
@@ -82,11 +78,11 @@ class Dekstop(QMainWindow):
                 return None
             data += packet
         return data
+    
     def Receive_file(self, data):
         file_name = data['file_name']
         save_path = data['save_path']
         file_size = data['file_size']
-
         with open(save_path, 'wb') as file:
             remaining_size = file_size
             while remaining_size > 0:
@@ -95,9 +91,7 @@ class Dekstop(QMainWindow):
                     break
                 file.write(chunk)
                 remaining_size -= len(chunk)
-
         print(f"File '{file_name}' received and saved at: {save_path}")
-
         
     def initUI(self):
         self.MainProgram = Thread(target = self.Main_Program, daemon = True)
@@ -114,13 +108,10 @@ class Dekstop(QMainWindow):
                 self.output_thread.start()  
                 try:
                     while(True):
-                        length = conn.recv(4)  # Assume that the length of the pickled object is sent first
-                        length = struct.unpack('!I', length)[0]
-                        data_received = self.recvall(conn, length)
-                        data = pickle.loads(data_received)
-                        
+                        data_received = conn.recv(999999)
+                        data=pickle.loads(data_received)
                         if data['type'] == 'keyboard':
-                            self.Character_solving(data, conn)
+                            self.Character_solving(data)
                         if data['type'] == 'mouse':
                             self.Mouse_solving(data)
                         if data['type'] == 'file_re':

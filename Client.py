@@ -19,22 +19,15 @@ import pickle
 import struct
 
 class Dekstop(QMainWindow):
-    def __init__(self): # def __init__(self):: Hàm khởi tạo của class Dekstop.
+    def __init__(self):
         super().__init__()
         self.client_socket = None
         self.initUI()
 
-    def initUI(self): # def initUI(self):: Hàm tạo giao diện người dùng của ứng dụng.
-        # Khởi tạo pixmap
+    def initUI(self):
         self.pixmap = QPixmap()
-
-        # Khởi tạo Dialog mới để hiển thị hình ảnh
         self.newWindow = QDialog()
-
-        # Khởi tạo label mới để đăng nhập
         self.label = QLabel(self)
-
-        # Khởi tạo label2 mới để hiển thị hình ảnh
         self.label2 = QLabel(parent = self.newWindow)
 
         self.label.setPixmap(self.pixmap)
@@ -50,7 +43,7 @@ class Dekstop(QMainWindow):
         self.button.setText("Start Demo")
         self.button.clicked.connect(self.StartThread)
 
-        self.ip = QLineEdit(self) # edit text để nhập IP
+        self.ip = QLineEdit(self) #edit text để nhập IP
         self.ip.move(70, 5)
         self.ip.resize(460, 45)
         self.ip.setStyleSheet("font-size: 30px")
@@ -62,8 +55,7 @@ class Dekstop(QMainWindow):
         self.port.setStyleSheet("font-size: 30px")
         self.port.setPlaceholderText("PORT")
 
-    def StartThread(self): #def StartThread(self):: Hàm được khởi động thread khi nút "Start Demo" được nhấn.
-        # Khởi tạo label 2_____________________________________________________________________________
+    def StartThread(self):
         self.label2.setPixmap(self.pixmap)
         self.label2.resize(1920, 1080)
         self.label2.setFixedSize(self.width(), self.height())
@@ -72,8 +64,6 @@ class Dekstop(QMainWindow):
         self.newWindow.setFixedSize(1920, 1080)
         self.newWindow.setWindowTitle("[Server] Remote Desktop: " + str(randint(99999, 999999)))
         self.newWindow.show()
-
-        # Khởi tạo label 3_____________________________________________________________________________
 
         self.window2 = QDialog()
         self.container = QWidget(self.window2)
@@ -97,18 +87,10 @@ class Dekstop(QMainWindow):
         self.SendFile.setText("Gửi file")
         self.SendFile.clicked.connect(self.File_to_server)
 
-        # self.ReFile = QPushButton(self.window2) # Nút nhận file
-        # self.ReFile.move(70, 55)
-        # self.ReFile.resize(460, 45)
-        # self.ReFile.setStyleSheet("font-size: 25px")
-        # self.ReFile.setText("Nhận file")
-        # self.ReFile.clicked.connect(self.ReFile_From_server)
-
         self.window2.setGeometry(QRect(0, -5, 600, 200))
         self.window2.setFixedSize(600, 200)
         self.window2.show()
         
-        # Khởi tạo Main Program_________________________________________________________________________
         self.mainthread = Thread(target = self.MainProgram, daemon = True)
         self.mainthread.start()
 
@@ -119,19 +101,14 @@ class Dekstop(QMainWindow):
         except Exception as e:
             return False
         
-    # Thread truyền ảnh _________________________________________________________________________________________________
     def MainProgram(self):
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
         if(self.check_connection(self.client_socket)):
             with self.client_socket:
-                # Thread gửi phím     
                 self.thread_keyboard = Thread(target = lambda: self.putkeyboard(self.client_socket), daemon = True)
                 self.thread_keyboard.start()
-                # Thread gửi chuột
                 self.thread_mouse = Thread(target = lambda: self.putkeymouse(self.client_socket), daemon = True)         
                 self.thread_mouse.start()
-
                 try:
                     while True:
                         img_size = struct.unpack('<l', self.recvall(self.client_socket, 4))[0]
@@ -150,7 +127,6 @@ class Dekstop(QMainWindow):
             self.ip.setStyleSheet("font-size: 30px")
             self.ip.setPlaceholderText("Wrong IP or PORT")
 
-
     def recvall(self, sock, n):
         data = bytearray()
         while len(data) < n:
@@ -160,46 +136,34 @@ class Dekstop(QMainWindow):
             data.extend(packet)
         return data
 
-    
-    # Gửi file qua server_____________________________________________________________________________________________
     def File_to_server(self):
        
         file_path, _ = QFileDialog.getOpenFileName()
         if file_path:
             file_name = os.path.basename(file_path)
-
-            # Chọn đường dẫn lưu một lần và lưu lại cho lần sau
             if not hasattr(self, 'save_path') or not self.save_path:
                 self.save_path, _ = QFileDialog.getSaveFileName()
-
             if self.save_path:
                 with open(file_path, 'rb') as file:
                     file_content = file.read()
-
-                    # Gửi thông tin file trước
                     file_info = {'type': 'file_re', 'file_name': file_name, 'save_path': self.save_path, 'file_size': len(file_content)}
                     serialized_info = pickle.dumps(file_info)
                     self.client_socket.sendall(serialized_info)
-
-                    # Gửi file theo chunks
                     chunk_size = 1024
                     for i in range(0, len(file_content), chunk_size):
                         chunk = file_content[i:i + chunk_size]
                         data = {'type': 'file_chunk', 'chunk': chunk}
                         serialized_data = pickle.dumps(data)
                         self.client_socket.sendall(serialized_data)
-
-                    # Gửi một gói tin trống để đánh dấu việc kết thúc file
                     self.client_socket.sendall(b'')
-
                     print(f"File '{file_name}' sent successfully.")
-    # Chụp ảnh_________________________________________________________________________________________________
+
     def Catchimage(self):
         filename = time.strftime("%Y%m%d-%H%M%S.jpg")
         filepath = os.path.join(os.getcwd(), filename)
         with open(filepath, 'wb') as f:
-            f.write(self.Image_catched)                
-    # Thread gửi kí tự _______________________________________________________________________________________________
+            f.write(self.Image_catched)
+
     def putkeyboard(self, client_socket):
         on_release = True
         while on_release:
@@ -221,7 +185,6 @@ class Dekstop(QMainWindow):
         if key == keyboard.Key.esc:
             return False
 
-    # Thread gửi chuột ____________________________________________________________________________________________
     def putkeymouse(self, client_socket):
         while True:
             with mouse.Listener(
@@ -239,21 +202,16 @@ class Dekstop(QMainWindow):
 
     def on_click(self, x, y, button, pressed, client_socket):
         action = 'Pressed' if pressed else 'Released'
-        
         if button == Button.right:
             data = {'type':'mouse', 'event_type': 'on_click', 'x': x, 'y': y, 'action': action, 'button': 'right'}
-
         if button == Button.left:
             data = {'type':'mouse', 'event_type': 'on_click', 'x': x, 'y': y, 'action': action, 'button': 'left'}
-
         if button == Button.middle:
             data = {'type':'mouse', 'event_type': 'on_click', 'x': x, 'y': y, 'action': action, 'button': 'middle'}
-
         serialized_data = pickle.dumps(data)
         client_socket.send(serialized_data)
 
     def on_scroll(self,x,y, dx, dy, client_socket):
-      
         data = {'type':'mouse', 'event_type': 'on_scroll', 'x': x, 'y': y,'dx':dx,'dy':dy}
         serialized_data = pickle.dumps(data)
         client_socket.send(serialized_data)
