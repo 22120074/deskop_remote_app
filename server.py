@@ -86,7 +86,7 @@ class Dekstop(QMainWindow):
         with open(save_path, 'wb') as file:
             remaining_size = file_size
             while remaining_size > 0:
-                chunk = self.recvall(sock, min(1024, remaining_size))
+                chunk = self.recvall(self.conn, min(1024, remaining_size))
                 if not chunk:
                     break
                 file.write(chunk)
@@ -99,12 +99,12 @@ class Dekstop(QMainWindow):
     
     def Main_Program(self):
         while True:
-            conn, addr = sock.accept()
-            with conn:
+            self.conn, self.addr = sock.accept()
+            with self.conn:
                 print("----------Connected----------")
-                print(f"Connected by {addr}")
+                print(f"Connected by {self.addr}")
                 # Luồng gửi data ảnh
-                self.output_thread = Thread(target = lambda: self.ChangeImage(conn), daemon = True)
+                self.output_thread = Thread(target = lambda: self.ChangeImage(self.conn), daemon = True)
                 self.output_thread.start()  
                 try:
                     while(True):
@@ -118,11 +118,10 @@ class Dekstop(QMainWindow):
                             self.Receive_file(data)
                 except Exception as e:
                     print('mainError: ', e)
-                    print(f"Connection with {addr} closed")              
+                    print(f"Connection with {self.addr} closed")              
     
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = Dekstop()
     sys.exit(app.exec())
-
 
