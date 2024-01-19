@@ -73,7 +73,15 @@ class Dekstop(QMainWindow):
 
         except Exception as e:
             print("Keyboard Error: ", traceback.format_exc())
-    
+    def recvall(self, sock, n):
+    # Helper function to recv n bytes or return None if EOF is hit
+        data = b''
+        while len(data) < n:
+            packet = sock.recv(n - len(data))
+            if not packet:
+                return None
+            data += packet
+        return data
     def Receive_file(self, data):
         file_name = data['file_name']
         save_path = data['save_path']
@@ -82,7 +90,7 @@ class Dekstop(QMainWindow):
         with open(save_path, 'wb') as file:
             remaining_size = file_size
             while remaining_size > 0:
-                chunk = self.recvall(self.client_socket, min(1024, remaining_size))
+                chunk = self.recvall(sock, min(1024, remaining_size))
                 if not chunk:
                     break
                 file.write(chunk)
@@ -106,9 +114,11 @@ class Dekstop(QMainWindow):
                 self.output_thread.start()  
                 try:
                     while(True):
-                        data_received = conn.recv(999999)
+                        length = conn.recv(4)  # Assume that the length of the pickled object is sent first
+                        length = struct.unpack('!I', length)[0]
+                        data_received = self.recvall(conn, length)
                         data = pickle.loads(data_received)
-                        print(data)
+                        
                         if data['type'] == 'keyboard':
                             self.Character_solving(data, conn)
                         if data['type'] == 'mouse':
