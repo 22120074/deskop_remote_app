@@ -90,7 +90,7 @@ class Dekstop(QMainWindow):
         with open(save_path, 'wb') as file:
             remaining_size = file_size
             while remaining_size > 0:
-                chunk = self.recvall(sock, min(1024, remaining_size))
+                chunk = self.recvall(self.conn, min(1024, remaining_size))
                 if not chunk:
                     break
                 file.write(chunk)
@@ -105,33 +105,32 @@ class Dekstop(QMainWindow):
     
     def Main_Program(self):
         while True:
-            conn, addr = sock.accept()
-            with conn:
+            self.conn, self.addr = sock.accept()
+            with self.conn:
                 print("----------Connected----------")
-                print(f"Connected by {addr}")
+                print(f"Connected by {self.addr}")
                 # Luồng gửi data ảnh
-                self.output_thread = Thread(target = lambda: self.ChangeImage(conn), daemon = True)
+                self.output_thread = Thread(target = lambda: self.ChangeImage(self.conn), daemon = True)
                 self.output_thread.start()  
                 try:
                     while(True):
-                        length = conn.recv(4)  # Assume that the length of the pickled object is sent first
+                        length = self.conn.recv(4)  # Assume that the length of the pickled object is sent first
                         length = struct.unpack('!I', length)[0]
-                        data_received = self.recvall(conn, length)
+                        data_received = self.recvall(self.conn, length)
                         data = pickle.loads(data_received)
                         
                         if data['type'] == 'keyboard':
-                            self.Character_solving(data, conn)
+                            self.Character_solving(data, self.conn)
                         if data['type'] == 'mouse':
                             self.Mouse_solving(data)
                         if data['type'] == 'file_re':
                             self.Receive_file(data)
                 except Exception as e:
                     print('mainError: ', e)
-                    print(f"Connection with {addr} closed")              
+                    print(f"Connection with {self.addr} closed")              
     
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = Dekstop()
     sys.exit(app.exec())
-
 
