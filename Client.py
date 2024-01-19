@@ -162,25 +162,39 @@ class Dekstop(QMainWindow):
 
     
     # Gửi file qua server_____________________________________________________________________________________________
+         
     def File_to_server(self):
-        try:
-            options = QFileDialog.Options()
-            options |= QFileDialog.DontUseNativeDialog
-            filename = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "", options = options)
-            if filename:
-                file_name = os.path.basename(filename[0])
-                data = {'type':'file_re', 'file_name': file_name}
-                serialized_data = pickle.dumps(data)
-                self.client_socket.send(serialized_data)
 
-                with open(filename[0], 'rb') as f:
-                    while True:
-                        file_content = f.read(1024)
-                        if not file_content:
-                            break
-                        self.client_socket.send(file_content)
-        except Exception as e:
-            print('Send file Error: ', e)
+        file_path, _ = QFileDialog.getOpenFileName()
+        if file_path:
+            file_name = os.path.basename(file_path)
+
+            # Chọn đường dẫn lưu một lần và lưu lại cho lần sau
+            if not hasattr(self, 'save_path') or not self.save_path:
+                self.save_path, _ = QFileDialog.getSaveFileName()
+
+            if self.save_path:
+                with open(file_path, 'rb') as file:
+                    file_content = file.read()
+
+                    # Gửi thông tin file trước
+                    file_info = {'type': 'file_re', 'file_name': file_name, 'save_path': self.save_path, 'file_size': len(file_content)}
+                    serialized_info = pickle.dumps(file_info)
+                    self.client_socket.sendall(serialized_info)
+
+                    # Gửi file theo chunks
+                    chunk_size = 1024
+                    for i in range(0, len(file_content), chunk_size):
+                        chunk = file_content[i:i + chunk_size]
+                        data = {'type': 'file_chunk', 'chunk': chunk}
+                        serialized_data = pickle.dumps(data)
+                        self.client_socket.sendall(serialized_data)
+
+                    # Gửi một gói tin trống để đánh dấu việc kết thúc file
+                    self.client_socket.sendall(b'')
+
+                    print(f"File '{file_name}' sent successfully.")
+
     # Chụp ảnh_________________________________________________________________________________________________
     def Catchimage(self):
         filename = time.strftime("%Y%m%d-%H%M%S.jpg")
@@ -203,7 +217,7 @@ class Dekstop(QMainWindow):
         client_socket.send(serialized_data)
         
     def keyReleased(self, key,client_socket):
-        data = {'type': 'keyboard', 'action': 'on_press', 'key_name': key}
+        data = {'type': 'keyboard', 'action': 'on_release', 'key_name': key}
         serialized_data = pickle.dumps(data)
         client_socket.send(serialized_data)
         if key == keyboard.Key.esc:
