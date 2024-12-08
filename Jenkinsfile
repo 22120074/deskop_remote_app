@@ -22,5 +22,6 @@ pipe {
         sh 'docker push'
         }
       }
+    }
   }
 }
