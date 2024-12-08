@@ -9,7 +9,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Sao chép đoạn mã Python vào container
-COPY script.py .
+COPY server.py .
 
 # Chạy đoạn mã Python
-CMD ["python", "script.py"]
+CMD ["python", "server.py"]
