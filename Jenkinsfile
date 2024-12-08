@@ -1,19 +1,29 @@
 pipeline {
     agent any
+    enviroment {
+        SERVICE_NAME = "deskop-remoote-app"
+        REPOSITORY_TAG = "${YOUR_DOCKERHUB_USERNAME}/${ORGANIZATION_NAME}-${SERVICE_NAME}:${BUILD_ID}
+    }
     stages {
-        stage('Pull Code') {
+        stage('Preparation') {
             steps {
-                script {
-                    sh 'git pull origin main' // Pull branch "main"
-                }
+                cleanWs()
+                git credentialsId: 'github-accunt', url: "https://github.com/${ORGANIZATION_NAME}/${SERVICE_NAME}"         
             }
         }
-        stage('Build Docker Image and Push') {
+        stage('Build') {
             steps {
-                withDockerRegistry(credentialsId: 'docker-hub', url: 'https://index.docker.io/v1/') {
-                    sh 'docker build -t whoami0709/test-jenkin-1 .'
-                    sh 'docker push whoami0709/test-jenkin-1'
-                }
+               sh 'echo No build required for Webapp'
+            }
+        }
+        stage('Build and push image') {
+            steps {
+               sh 'docker image build -t ${REPOSITORY_TAG}'    
+            }
+        }
+        stage('Deloy') {
+            steps {
+               sh 'envsubst < ${WORKSPACE}/deloy.yaml | kubectl apply -f -'    
             }
         }
     }
