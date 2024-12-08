@@ -21,4 +21,4 @@ RUN apt-get update && apt-get install -y \
 EXPOSE 8080
 
 # Run the server.py script when the container launches
-CMD ["python", "server.py"]
+CMD ["python", "Client.py"]
