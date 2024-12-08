@@ -20,7 +20,7 @@ pipeline {
             steps {
                 script {
                     echo 'Building the app'
-                    sh 'docker build -t $IMAGE_NAME .'
+                    sh 'docker build -t ${IMAGE_NAME} .'
                 }
             }
         }
@@ -36,8 +36,12 @@ pipeline {
             steps {
                 script {
                     echo 'Deploying the app'
-                    sh 'docker login -u $DOCKER_HUB_CREDENTIALS_USR -p $DOCKER_HUB_CREDENTIALS_PSW'
-                    sh 'docker push $IMAGE_NAME'
+                }
+                withCredentials([usernamePassword(credentialsId: 'docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh '''
+                        docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
+                        docker push ${IMAGE_NAME}
+                    '''
                 }
             }
         }
@@ -46,10 +50,10 @@ pipeline {
                 script {
                     echo 'Running the Docker container'
                     sh '''
-                        docker pull $IMAGE_NAME
-                        docker stop $CONTAINER_NAME || true
-                        docker rm $CONTAINER_NAME || true
-                        docker run -d --name $CONTAINER_NAME -p 8081:8080 $IMAGE_NAME
+                        docker pull ${IMAGE_NAME}
+                        docker stop ${CONTAINER_NAME} || true
+                        docker rm ${CONTAINER_NAME} || true
+                        docker run -d --name ${CONTAINER_NAME} -p 8081:8080 ${IMAGE_NAME}
                     '''
                 }
             }
