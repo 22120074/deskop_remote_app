@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Expose the port the server will run on
-EXPOSE 1234
+EXPOSE 8080
 
 # Run the server.py script when the container launches
 CMD ["python", "server.py"]

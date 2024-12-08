@@ -3,8 +3,8 @@ pipeline {
 
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('docker-hub')
-        IMAGE_NAME = 'whoami0709/deskp-remote-app-image'
-        CONTAINER_NAME = 'deskp-remote-app-container'
+        IMAGE_NAME = 'whoami0709/deskop-remote-app-image'
+        CONTAINER_NAME = 'deskop-remote-app-container'
     }
 
     stages {
@@ -49,7 +49,7 @@ pipeline {
                         docker pull $IMAGE_NAME
                         docker stop $CONTAINER_NAME || true
                         docker rm $CONTAINER_NAME || true
-                        docker run -d --name $CONTAINER_NAME -p 1234:1234 $IMAGE_NAME
+                        docker run -d --name $CONTAINER_NAME -p 8081:8080 $IMAGE_NAME
                     '''
                 }
             }
