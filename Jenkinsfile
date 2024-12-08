@@ -1,18 +1,12 @@
 pipe {
   agent any
-  tool {
-    jdk 'OpenJDK8'
-    maven 'Maven3'
-  }
+  
   stage {
-    stage('SCM') {
-      step {
-        git branch: 'main', changelog: false, credentialsId: 'github-account', poll: false, url: 'https://github.com/22120074/deskop_remote_app.git'
-      }
-    }
-    stage('Maven build'){
-      step {
-        sh 'mvn clean install'
+    stage('Pull Code') {
+      steps {
+        script {
+          sh 'git pull origin main' // Pull branch "main"
+        }
       }
     }
     stage('Build docker registry and push') {
